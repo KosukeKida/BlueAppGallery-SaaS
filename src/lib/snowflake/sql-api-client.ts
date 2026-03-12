@@ -167,7 +167,7 @@ export class SnowflakeSqlApiClient {
       const error = new OperatorApiError(
         err?.message ?? `api.${procedure} returned ERROR`,
         err?.code ?? 'UNKNOWN',
-        err
+        err ? { ...err } : undefined
       );
       throw error;
     }
