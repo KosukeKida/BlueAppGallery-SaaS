@@ -55,7 +55,7 @@
 ### Operator との API 契約
 - Snowflake との全通信は `src/lib/snowflake/sql-api-client.ts` 経由
 - `api.*` スキーマのプロシージャのみ呼び出す（`core.*` や `config.*` は直接呼ばない）
-- Operator API 一覧: `api.start()`, `api.stop()`, `api.extend()`, `api.get_status()`,
+- Operator API 一覧: `api.launch()`, `api.stop()`, `api.extend()`, `api.get_status()`,
   `api.heartbeat()`, `api.list_apps()`, `api.get_endpoints()`, `api.get_version()`
 - 全レスポンス形式: `{ api_version, status: "OK"|"ERROR", data?, error? }`
 
@@ -66,8 +66,8 @@
 - Free tier ユーザーには Usage Insights をロックされたプレビューで表示（Pro へのアップセル）
 
 ### app_type の処理
-- `native_app`: Launch → Operator `api.start()` → エンドポイントポーリング → Open
-- `streamlit_cp`: Launch → Operator `api.start()` → CP 起動 → `endpoint_url` で Open
+- `native_app`: Launch → Operator `api.launch()` → エンドポイントポーリング → Open
+- `streamlit_cp`: Launch → Operator `api.launch()` → CP 起動 → `endpoint_url` で Open
 - `streamlit_wh`: Launch/リース不要 — Open ボタンで `endpoint_url` に直リンク
 
 ### カード操作（Gallery ページ）
