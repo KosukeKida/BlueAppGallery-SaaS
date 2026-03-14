@@ -84,7 +84,7 @@ export async function POST(request: Request) {
       encrypted_private_key: privateKey,
       warehouse: warehouse || null,
       role: role || 'gallery_saas_role',
-      database: database || 'APP_GALLERY_OPERATOR',
+      database: database || 'BLUE_APP_GALLERY',
       schema_name: schemaName || 'core',
     })
     .select('id, display_name, account_identifier, username, role, database, schema_name, is_active, created_at')

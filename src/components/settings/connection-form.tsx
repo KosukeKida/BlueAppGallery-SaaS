@@ -35,7 +35,7 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
   const [username, setUsername] = useState(editConnection?.username ?? '');
   const [privateKey, setPrivateKey] = useState('');
   const [role, setRole] = useState(editConnection?.role ?? 'gallery_saas_role');
-  const [database, setDatabase] = useState(editConnection?.database ?? 'APP_GALLERY_OPERATOR');
+  const [database, setDatabase] = useState(editConnection?.database ?? 'BLUE_APP_GALLERY');
   const [warehouse, setWarehouse] = useState(editConnection?.warehouse ?? '');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,7 +177,7 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
                 id="database"
                 value={database}
                 onChange={(e) => setDatabase(e.target.value)}
-                placeholder="APP_GALLERY_OPERATOR"
+                placeholder="BLUE_APP_GALLERY"
               />
             </div>
             <div className="space-y-2">

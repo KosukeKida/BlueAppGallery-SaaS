@@ -48,6 +48,7 @@ export async function POST() {
 
     // Upsert each app into Supabase, preserving display fields
     let synced = 0;
+    const errors: string[] = [];
     for (const app of apps) {
       // Check if app already exists to preserve display customizations
       const { data: existing } = await supabase
@@ -57,6 +58,15 @@ export async function POST() {
         .eq('app_name', app.app_name)
         .single();
 
+      // Snowflake catalog value > existing Supabase value
+      // Live endpoint resolution happens at launch/open time, not during sync
+      const endpointUrl = app.endpoint_url || existing?.endpoint_url || null;
+
+      // Filter out default Snowflake CLI comment
+      const appComment = (app.app_comment ?? '').toUpperCase() === 'GENERATED_BY_SNOWFLAKECLI'
+        ? null
+        : app.app_comment;
+
       const { error } = await supabase
         .from('app_catalog')
         .upsert(
@@ -64,10 +74,11 @@ export async function POST() {
             tenant_id: tenantId,
             connection_id: connection.id,
             app_name: app.app_name,
-            app_comment: app.app_comment,
+            app_comment: appComment,
             app_type: app.app_type,
             compute_pool: app.compute_pool,
             service_name: app.service_name,
+            endpoint_url: endpointUrl,
             gallery_compatible: app.gallery_compatible ?? false,
             // Preserve existing display customizations
             display_name: existing?.display_name ?? app.app_name,
@@ -80,13 +91,19 @@ export async function POST() {
           { onConflict: 'tenant_id,app_name' }
         );
 
-      if (!error) synced++;
+      if (error) {
+        console.error(`[catalog/sync] Upsert failed for ${app.app_name}:`, error.message);
+        errors.push(`${app.app_name}: ${error.message}`);
+      } else {
+        synced++;
+      }
     }
 
     return NextResponse.json({
       ok: true,
       synced,
       total: apps.length,
+      ...(errors.length > 0 && { errors }),
     });
   } catch (error) {
     return NextResponse.json(

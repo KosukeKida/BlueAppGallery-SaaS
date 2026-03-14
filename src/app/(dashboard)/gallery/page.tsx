@@ -262,13 +262,7 @@ export default function GalleryPage() {
   };
 
   const handleAppClick = async (app: AppCatalogItem) => {
-    // Running app with known endpoint → open directly
-    if (isRunning(app) && app.endpoint_url) {
-      openEndpoint(app.endpoint_url);
-      return;
-    }
-
-    // Running app without endpoint → try to discover via Snowflake
+    // Running app → resolve live endpoint via Snowflake
     if (isRunning(app) && (app.service_name || app.app_name)) {
       setDiscovering(app.id);
       try {
@@ -277,7 +271,7 @@ export default function GalleryPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             appName: app.app_name,
-            endpointUrl: null,
+            endpointUrl: null, // Always resolve from Snowflake for freshness
           }),
         });
         const data = await res.json();
@@ -293,7 +287,12 @@ export default function GalleryPage() {
           return;
         }
       } catch {
-        // Discovery failed
+        // Discovery failed — fall back to stored URL if available
+        if (app.endpoint_url) {
+          openEndpoint(app.endpoint_url);
+          setDiscovering(null);
+          return;
+        }
       }
       setDiscovering(null);
       // App is running but endpoint not found — don't show LaunchDialog

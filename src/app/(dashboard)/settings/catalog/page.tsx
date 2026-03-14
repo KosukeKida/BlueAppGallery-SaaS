@@ -121,7 +121,7 @@ export default function CatalogSettingsPage() {
       const data = await res.json();
       if (res.ok) {
         const msg = data.synced > 0
-          ? `Synced ${data.synced} app(s) from Snowflake (${data.total_validated} validated)`
+          ? `Synced ${data.synced} of ${data.total} app(s) from Snowflake`
           : data.message || 'No apps to sync';
         setSyncMessage(msg);
         await fetchApps();

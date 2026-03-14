@@ -387,6 +387,10 @@ async function checkConcurrentLeaseLimit(
   return { ok: true };
 }
 
+// ============================================================
+// Helpers
+// ============================================================
+
 async function auditLog(
   supabase: SupabaseClient,
   tenantId: string,
