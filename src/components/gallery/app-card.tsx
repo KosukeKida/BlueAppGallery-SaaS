@@ -64,7 +64,7 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
       type="button"
       onClick={() => onClick?.(app)}
       className={cn(
-        'group relative flex flex-col text-left rounded-xl border bg-card p-4',
+        'group relative flex flex-col text-left rounded-xl border bg-card p-4 min-h-[140px]',
         'hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all cursor-pointer',
         effectiveRunning && !isLaunching && 'ring-2 ring-green-500/50 border-green-500/30',
         isLaunching && 'ring-2 ring-blue-500/50 border-blue-500/30'
