@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 const mainNavItems = [
   { href: '/gallery', label: 'Gallery', icon: '🖥' },
   { href: '/leases', label: 'Leases', icon: '⏱' },
-  { href: '/setup-guide', label: 'Setup Guide', icon: '📖' },
 ];
 
 const settingsNavItems = [
@@ -16,6 +15,7 @@ const settingsNavItems = [
   { href: '/settings/catalog', label: 'App Catalog', icon: '📋', minRole: 'admin' as const },
   { href: '/settings/members', label: 'Members', icon: '👥', minRole: 'admin' as const },
   { href: '/settings/audit-log', label: 'Audit Log', icon: '📜', minRole: 'admin' as const },
+  { href: '/setup-guide', label: 'Setup Guide', icon: '📖', minRole: 'member' as const },
 ];
 
 type Role = 'owner' | 'admin' | 'member';

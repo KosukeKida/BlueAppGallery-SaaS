@@ -30,6 +30,7 @@ interface AppCardProps {
   isFavorite?: boolean;
   onToggleFavorite?: (appId: string) => void;
   onClick?: (app: AppCatalogItem) => void;
+  onOpen?: (app: AppCatalogItem) => void;
 }
 
 const ICON_BG: Record<string, string> = {
@@ -40,15 +41,22 @@ const ICON_BG: Record<string, string> = {
   Tools: 'bg-orange-500/15',
 };
 
-export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFavorite, onClick }: AppCardProps) {
+// Filter out Snowflake CLI default comments
+function cleanComment(comment: string | null): string | null {
+  if (!comment) return null;
+  if (comment.toUpperCase() === 'GENERATED_BY_SNOWFLAKECLI') return null;
+  return comment;
+}
+
+export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFavorite, onClick, onOpen }: AppCardProps) {
   const displayName = app.display_name || app.app_name;
   const icon = app.icon_emoji || '📦';
   const iconBg = ICON_BG[app.category || ''] || 'bg-muted';
+  const comment = cleanComment(app.app_comment);
 
   const launchProgress = useLaunchProgress(app.id);
   const isLaunching = launchProgress && (launchProgress.status === 'starting' || launchProgress.status === 'polling');
   const isReady = launchProgress?.status === 'ready';
-  // Treat launch-ready as running so text/button stay green until leases catch up
   const effectiveRunning = isRunning || isReady;
 
   return (
@@ -104,13 +112,13 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
       </div>
 
       {/* Description */}
-      {app.app_comment && (
+      {comment && (
         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-3">
-          {app.app_comment}
+          {comment}
         </p>
       )}
 
-      {/* Launch progress bar (when launching in background) */}
+      {/* Launch progress bar */}
       {isLaunching && (
         <div className="mb-2 space-y-1">
           <Progress value={launchProgress.progress} className="h-1.5" />
@@ -120,7 +128,7 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
         </div>
       )}
 
-      {/* Footer: Status + Action */}
+      {/* Footer: Status + Actions */}
       <div className="mt-auto flex items-center justify-between">
         <div className={cn(
           'flex items-center gap-1.5 text-xs font-medium',
@@ -132,18 +140,45 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
           )} />
           {isLaunching ? 'Starting' : effectiveRunning ? 'Running' : 'Stopped'}
         </div>
-        <span className={cn(
-          'text-xs font-semibold px-2.5 py-1 rounded-md transition-colors',
-          isLaunching
-            ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 animate-pulse'
-            : isDiscovering
-              ? 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 animate-pulse'
-              : effectiveRunning
-                ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-                : 'bg-primary/10 text-primary'
-        )}>
-          {isLaunching ? 'Starting...' : isDiscovering ? 'Connecting...' : effectiveRunning ? 'Open ↗' : 'Launch ▶'}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {/* Open button — only when running, separate from card click */}
+          {effectiveRunning && !isLaunching && onOpen && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpen(app);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.stopPropagation();
+                  onOpen(app);
+                }
+              }}
+              className={cn(
+                'text-xs font-semibold px-2.5 py-1 rounded-md transition-colors',
+                isDiscovering
+                  ? 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 animate-pulse'
+                  : 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25'
+              )}
+            >
+              {isDiscovering ? 'Connecting...' : 'Open ↗'}
+            </span>
+          )}
+          {/* Launch hint when stopped */}
+          {!effectiveRunning && !isLaunching && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-primary/10 text-primary">
+              Launch ▶
+            </span>
+          )}
+          {/* Starting indicator */}
+          {isLaunching && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 animate-pulse">
+              Starting...
+            </span>
+          )}
+        </div>
       </div>
     </button>
   );

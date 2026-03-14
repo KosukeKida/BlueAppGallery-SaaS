@@ -109,7 +109,6 @@ export default function GalleryPage() {
       const allLeases: ActiveLease[] = data.leases || [];
       setLeases(allLeases.filter((l) => l.status === 'ACTIVE'));
 
-      // Extract recent app names (unique, max 5, most recent first)
       const seen = new Set<string>();
       const recent: string[] = [];
       for (const l of allLeases) {
@@ -138,7 +137,7 @@ export default function GalleryPage() {
     let tick = 0;
     const poll = async () => {
       tick++;
-      const useQuick = tick % 6 !== 0; // every 6th tick (~60s) = full refresh
+      const useQuick = tick % 6 !== 0;
       try {
         const res = await fetch(`/api/leases${useQuick ? '?quick=true' : ''}`);
         if (res.ok) {
@@ -193,7 +192,7 @@ export default function GalleryPage() {
     return result;
   }, [apps, selectedCategory, search]);
 
-  // Recent apps from lease history (matched against catalog)
+  // Recent apps from lease history
   const recentApps = useMemo(() => {
     if (recentAppNames.length === 0) return [];
     return recentAppNames
@@ -201,7 +200,6 @@ export default function GalleryPage() {
       .filter((a): a is AppCatalogItem => !!a);
   }, [recentAppNames, apps]);
 
-  // Only exclude recent apps from other sections when the recent section is visible
   const showRecent = recentApps.length > 0 && !search.trim() && !selectedCategory;
   const recentAppIds = useMemo(
     () => showRecent ? new Set(recentApps.map((a) => a.id)) : new Set<string>(),
@@ -227,14 +225,16 @@ export default function GalleryPage() {
     });
   };
 
-  // Running status based on compute pool (not individual app name)
+  // Running status based on compute pool
   const isRunning = (app: AppCatalogItem) =>
     leases.some((l) => l.compute_pool === app.compute_pool) ||
     (leases.length === 0 && MOCK_RUNNING_POOLS.has(app.compute_pool ?? ''));
 
-  // Clean up launch-state: 'ready' when leases catches up, stale after 5 min
-  // Note: 'starting'/'polling' entries are left alone while dialog is still open;
-  // LaunchDialog transitions them to 'ready' when dialog closes.
+  // Find active lease for an app
+  const getActiveLease = (app: AppCatalogItem) =>
+    leases.find((l) => l.compute_pool === app.compute_pool) ?? null;
+
+  // Clean up launch-state
   const activeLaunches = useAllLaunches();
   useEffect(() => {
     for (const launch of activeLaunches) {
@@ -245,7 +245,6 @@ export default function GalleryPage() {
           continue;
         }
       }
-      // Stale entries (dialog closed without proper cleanup) → clean up after 5 min
       if (Date.now() - launch.startedAt > 5 * 60 * 1000) {
         removeLaunchProgress(launch.appId);
       }
@@ -255,52 +254,56 @@ export default function GalleryPage() {
   const [discovering, setDiscovering] = useState<string | null>(null);
 
   // Open SPCS endpoint URL in a new tab
-  // Note: no cache buster — SPCS auth redirects break with unexpected query params
   const openEndpoint = (rawUrl: string) => {
     const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
     window.open(url, '_blank', 'noopener');
   };
 
-  const handleAppClick = async (app: AppCatalogItem) => {
-    // Running app → resolve live endpoint via Snowflake
-    if (isRunning(app) && (app.service_name || app.app_name)) {
-      setDiscovering(app.id);
-      try {
-        const res = await fetch('/api/leases/check-endpoint', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            appName: app.app_name,
-            endpointUrl: null, // Always resolve from Snowflake for freshness
-          }),
-        });
-        const data = await res.json();
-        if (data.ready && data.ingress_url) {
-          // Update local state so next click is instant
-          setDbApps((prev) =>
-            prev.map((a) =>
-              a.id === app.id ? { ...a, endpoint_url: data.ingress_url } : a
-            )
-          );
-          openEndpoint(data.ingress_url);
-          setDiscovering(null);
-          return;
-        }
-      } catch {
-        // Discovery failed — fall back to stored URL if available
-        if (app.endpoint_url) {
-          openEndpoint(app.endpoint_url);
-          setDiscovering(null);
-          return;
-        }
-      }
-      setDiscovering(null);
-      // App is running but endpoint not found — don't show LaunchDialog
-      return;
-    }
-
-    // Not running → show app detail dialog
+  // Card click → always show detail dialog
+  const handleAppClick = (app: AppCatalogItem) => {
     setDetailApp(app);
+  };
+
+  // Open button → resolve endpoint and open
+  const handleOpenApp = async (app: AppCatalogItem) => {
+    if (!(app.service_name || app.app_name)) return;
+
+    setDiscovering(app.id);
+    try {
+      const res = await fetch('/api/leases/check-endpoint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appName: app.app_name,
+          endpointUrl: null,
+        }),
+      });
+      const data = await res.json();
+      if (data.ready && data.ingress_url) {
+        setDbApps((prev) =>
+          prev.map((a) =>
+            a.id === app.id ? { ...a, endpoint_url: data.ingress_url } : a
+          )
+        );
+        // Also update detailApp if it's the same app
+        setDetailApp((prev) =>
+          prev?.id === app.id ? { ...prev, endpoint_url: data.ingress_url } : prev
+        );
+        openEndpoint(data.ingress_url);
+        setDiscovering(null);
+        return;
+      }
+    } catch {
+      if (app.endpoint_url) {
+        openEndpoint(app.endpoint_url);
+        setDiscovering(null);
+        return;
+      }
+    }
+    setDiscovering(null);
+    toast.error('Endpoint not ready', {
+      description: 'The app may still be starting up. Try again in a moment.',
+    });
   };
 
   if (loading) {
@@ -315,6 +318,20 @@ export default function GalleryPage() {
       </div>
     );
   }
+
+  const renderCards = (appList: AppCatalogItem[], keyPrefix = '') =>
+    appList.map((app) => (
+      <AppCard
+        key={`${keyPrefix}${app.id}`}
+        app={app}
+        isRunning={isRunning(app)}
+        isDiscovering={discovering === app.id}
+        isFavorite={favorites.has(app.id)}
+        onToggleFavorite={toggleFavorite}
+        onClick={handleAppClick}
+        onOpen={handleOpenApp}
+      />
+    ));
 
   return (
     <div>
@@ -390,17 +407,7 @@ export default function GalleryPage() {
                 <span>🕐</span> Recently Used
               </h3>
               <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                {recentApps.map((app) => (
-                  <AppCard
-                    key={`recent-${app.id}`}
-                    app={app}
-                    isRunning={isRunning(app)}
-                    isDiscovering={discovering === app.id}
-                    isFavorite={favorites.has(app.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onClick={handleAppClick}
-                  />
-                ))}
+                {renderCards(recentApps, 'recent-')}
               </div>
             </div>
           )}
@@ -412,17 +419,7 @@ export default function GalleryPage() {
                 <span className="text-yellow-500">★</span> Favorites
               </h3>
               <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                {favoriteApps.map((app) => (
-                  <AppCard
-                    key={app.id}
-                    app={app}
-                    isRunning={isRunning(app)}
-                    isDiscovering={discovering === app.id}
-                    isFavorite
-                    onToggleFavorite={toggleFavorite}
-                    onClick={handleAppClick}
-                  />
-                ))}
+                {renderCards(favoriteApps)}
               </div>
             </div>
           )}
@@ -435,17 +432,7 @@ export default function GalleryPage() {
               </h3>
             )}
             <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-              {otherApps.map((app) => (
-                <AppCard
-                  key={app.id}
-                  app={app}
-                  isRunning={isRunning(app)}
-                  isDiscovering={discovering === app.id}
-                  isFavorite={false}
-                  onToggleFavorite={toggleFavorite}
-                  onClick={handleAppClick}
-                />
-              ))}
+              {renderCards(otherApps)}
             </div>
           </div>
         </>
@@ -454,7 +441,7 @@ export default function GalleryPage() {
       {/* Setup wizard for first-time users */}
       {!loading && <SetupWizard hasConnections={hasConnections} hasCatalog={hasCatalog} />}
 
-      {/* App detail dialog */}
+      {/* App detail dialog — shown for both running and stopped apps */}
       <AppDetailDialog
         open={!!detailApp}
         onOpenChange={(open) => {
@@ -462,7 +449,10 @@ export default function GalleryPage() {
         }}
         app={detailApp}
         isRunning={detailApp ? isRunning(detailApp) : false}
+        lease={detailApp ? getActiveLease(detailApp) : null}
         onLaunch={(app) => setLaunchApp(app)}
+        onOpen={handleOpenApp}
+        isDiscovering={detailApp ? discovering === detailApp.id : false}
       />
 
       {/* Launch dialog */}
@@ -473,8 +463,6 @@ export default function GalleryPage() {
         }}
         app={launchApp}
         onSuccess={() => {
-          // Optimistic update: immediately mark the app as running
-          // so the card turns green without waiting for API
           const cp = launchApp?.compute_pool;
           if (cp) {
             setLeases((prev) => {
@@ -489,7 +477,6 @@ export default function GalleryPage() {
               }];
             });
           }
-          // Then sync real data from Supabase
           refreshLeasesQuick();
         }}
       />
