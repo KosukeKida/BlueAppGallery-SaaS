@@ -283,23 +283,23 @@ export default function CatalogSettingsPage() {
                       <span className="text-xs text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs">
+                  <TableCell className="text-xs max-w-[160px]">
                     {app.compute_pool ? (
-                      <span className="font-mono">{app.compute_pool}</span>
+                      <span className="font-mono break-all">{app.compute_pool}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs">
+                  <TableCell className="text-xs max-w-[200px]">
                     {app.service_name ? (
-                      <span className="font-mono">{app.service_name}</span>
+                      <span className="font-mono break-all">{app.service_name}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs">
+                  <TableCell className="text-xs max-w-[160px]">
                     {app.postgres_instance ? (
-                      <span className="font-mono">{app.postgres_instance}</span>
+                      <span className="font-mono break-all">{app.postgres_instance}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
@@ -459,7 +459,7 @@ export default function CatalogSettingsPage() {
             {editApp && (editApp.compute_pool || editApp.service_name || editApp.postgres_instance) && (
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Resources (from Snowflake)</Label>
-                <div className="rounded-md border p-3 space-y-1 text-xs text-muted-foreground">
+                <div className="rounded-md border p-3 space-y-1 text-xs text-muted-foreground break-all">
                   {editApp.compute_pool && (
                     <div>Compute Pool: <span className="font-mono">{editApp.compute_pool}</span></div>
                   )}

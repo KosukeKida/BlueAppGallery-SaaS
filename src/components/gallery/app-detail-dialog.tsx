@@ -79,7 +79,7 @@ export function AppDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <span className="text-2xl">{icon}</span>
@@ -127,7 +127,7 @@ export function AppDetailDialog({
             <div>
               <h4 className="text-sm font-medium mb-1">Endpoint</h4>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded font-mono truncate">
+                <code className="flex-1 text-xs bg-muted px-2 py-1.5 rounded font-mono break-all">
                   {app.endpoint_url}
                 </code>
               </div>
@@ -156,7 +156,7 @@ export function AppDetailDialog({
                       <span className="text-base">{meta.icon}</span>
                       <div className="min-w-0">
                         <div className="text-sm font-medium">{meta.label}</div>
-                        <div className="text-xs text-muted-foreground font-mono truncate">{r.name}</div>
+                        <div className="text-xs text-muted-foreground font-mono break-all">{r.name}</div>
                       </div>
                     </div>
                   );
