@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AppCard, type AppCatalogItem } from '@/components/gallery/app-card';
+import { PromotionCard, type PromotionCardData } from '@/components/gallery/promotion-card';
 import { LaunchDialog } from '@/components/gallery/launch-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ interface RecentLease {
 
 export default function GalleryPage() {
   const [dbApps, setDbApps] = useState<AppCatalogItem[]>([]);
+  const [promoCards, setPromoCards] = useState<PromotionCardData[]>([]);
   const [leases, setLeases] = useState<ActiveLease[]>([]);
   const [recentAppNames, setRecentAppNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,16 +95,21 @@ export default function GalleryPage() {
   }, []);
 
   const fetchData = useCallback(async () => {
-    const [catalogRes, leasesRes, connRes] = await Promise.all([
+    const [catalogRes, leasesRes, connRes, promoRes] = await Promise.all([
       fetch('/api/catalog'),
       fetch('/api/leases?quick=true'),
       fetch('/api/connections'),
+      fetch('/api/promotions'),
     ]);
     if (catalogRes.ok) {
       const data = await catalogRes.json();
       const catalog = data.catalog || [];
       setDbApps(catalog);
       setHasCatalog(catalog.length > 0);
+    }
+    if (promoRes.ok) {
+      const data = await promoRes.json();
+      setPromoCards(data.cards || []);
     }
     if (leasesRes.ok) {
       const data = await leasesRes.json();
@@ -424,7 +431,7 @@ export default function GalleryPage() {
             </div>
           )}
 
-          {/* All apps */}
+          {/* All apps (with promotion cards interleaved) */}
           <div>
             {favoriteApps.length > 0 && (
               <h3 className="text-sm font-semibold text-muted-foreground mb-3">
@@ -432,7 +439,43 @@ export default function GalleryPage() {
               </h3>
             )}
             <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-              {renderCards(otherApps)}
+              {(() => {
+                // Hide promos when searching or filtering
+                if (search.trim() || selectedCategory) return renderCards(otherApps);
+
+                const sortedPromos = [...promoCards].sort((a, b) => a.position - b.position);
+                const items: React.ReactNode[] = [];
+                let promoIdx = 0;
+                let appIdx = 0;
+                let gridIdx = 0;
+
+                while (appIdx < otherApps.length || promoIdx < sortedPromos.length) {
+                  if (promoIdx < sortedPromos.length && sortedPromos[promoIdx].position <= gridIdx) {
+                    const promo = sortedPromos[promoIdx];
+                    items.push(<PromotionCard key={`promo-${promo.id}`} card={promo} />);
+                    promoIdx++;
+                  } else if (appIdx < otherApps.length) {
+                    const app = otherApps[appIdx];
+                    items.push(
+                      <AppCard
+                        key={app.id}
+                        app={app}
+                        isRunning={isRunning(app)}
+                        isDiscovering={discovering === app.id}
+                        isFavorite={favorites.has(app.id)}
+                        onToggleFavorite={toggleFavorite}
+                        onClick={handleAppClick}
+                        onOpen={handleOpenApp}
+                      />
+                    );
+                    appIdx++;
+                  } else {
+                    break;
+                  }
+                  gridIdx++;
+                }
+                return items;
+              })()}
             </div>
           </div>
         </>
