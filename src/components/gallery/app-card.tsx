@@ -21,6 +21,7 @@ export interface AppCatalogItem {
   postgres_instance: string | null;
   endpoint_url: string | null;
   gallery_compatible: boolean;
+  app_type?: string | null;
 }
 
 interface AppCardProps {
@@ -54,10 +55,12 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
   const iconBg = ICON_BG[app.category || ''] || 'bg-muted';
   const comment = cleanComment(app.app_comment);
 
+  const isStreamlitWh = app.app_type === 'streamlit_wh';
+
   const launchProgress = useLaunchProgress(app.id);
-  const isLaunching = launchProgress && (launchProgress.status === 'starting' || launchProgress.status === 'polling');
+  const isLaunching = !isStreamlitWh && launchProgress && (launchProgress.status === 'starting' || launchProgress.status === 'polling');
   const isReady = launchProgress?.status === 'ready';
-  const effectiveRunning = isRunning || isReady;
+  const effectiveRunning = isStreamlitWh || isRunning || isReady;
 
   return (
     <button
@@ -138,7 +141,7 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
             'w-1.5 h-1.5 rounded-full',
             isLaunching ? 'bg-blue-500 animate-pulse' : effectiveRunning ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/50'
           )} />
-          {isLaunching ? 'Starting' : effectiveRunning ? 'Running' : 'Stopped'}
+          {isLaunching ? 'Starting' : isStreamlitWh ? 'Available' : effectiveRunning ? 'Running' : 'Stopped'}
         </div>
         <div className="flex items-center gap-1.5">
           {/* Open button — only when running, separate from card click */}
@@ -167,7 +170,7 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
             </span>
           )}
           {/* Launch hint when stopped */}
-          {!effectiveRunning && !isLaunching && (
+          {!effectiveRunning && !isLaunching && !isStreamlitWh && (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-primary/10 text-primary">
               Launch ▶
             </span>

@@ -67,6 +67,9 @@ export function AppDetailDialog({
 }: AppDetailDialogProps) {
   if (!app) return null;
 
+  const isStreamlitWh = app.app_type === 'streamlit_wh';
+  const effectiveRunning = isStreamlitWh || isRunning;
+
   const displayName = app.display_name || app.app_name;
   const icon = app.icon_emoji || '📦';
   const comment = cleanComment(app.app_comment);
@@ -100,15 +103,18 @@ export function AppDetailDialog({
         <div className="space-y-4 py-2">
           {/* Status */}
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500' : 'bg-muted-foreground/50'}`} />
-            <span className="text-sm font-medium">{isRunning ? 'Running' : 'Stopped'}</span>
+            <span className={`w-2 h-2 rounded-full ${effectiveRunning ? 'bg-green-500' : 'bg-muted-foreground/50'}`} />
+            <span className="text-sm font-medium">{isStreamlitWh ? 'Available' : effectiveRunning ? 'Running' : 'Stopped'}</span>
             {app.gallery_compatible && (
               <Badge variant="secondary" className="text-xs">Gallery Compatible</Badge>
+            )}
+            {isStreamlitWh && (
+              <Badge variant="outline" className="text-xs">Always On</Badge>
             )}
           </div>
 
           {/* Lease info (when running) */}
-          {isRunning && lease && (
+          {isRunning && !isStreamlitWh && lease && (
             <div className="rounded-md border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 p-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-green-800 dark:text-green-200">Active Lease</span>
@@ -123,7 +129,7 @@ export function AppDetailDialog({
           )}
 
           {/* Endpoint (when running) */}
-          {isRunning && app.endpoint_url && (
+          {effectiveRunning && app.endpoint_url && (
             <div>
               <h4 className="text-sm font-medium mb-1">Endpoint</h4>
               <div className="flex items-center gap-2">
@@ -185,7 +191,7 @@ export function AppDetailDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          {isRunning && onOpen && (
+          {effectiveRunning && onOpen && (
             <Button
               variant="default"
               onClick={() => onOpen(app)}
@@ -195,7 +201,7 @@ export function AppDetailDialog({
               {isDiscovering ? 'Connecting...' : 'Open App ↗'}
             </Button>
           )}
-          {!isRunning && onLaunch && (
+          {!effectiveRunning && onLaunch && (
             <Button onClick={() => { onOpenChange(false); onLaunch(app); }}>
               Launch
             </Button>
