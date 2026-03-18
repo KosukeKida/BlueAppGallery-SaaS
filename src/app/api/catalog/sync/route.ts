@@ -78,6 +78,7 @@ export async function POST() {
             app_type: app.app_type,
             compute_pool: app.compute_pool,
             service_name: app.service_name,
+            postgres_instance: app.postgres_instance ?? null,
             endpoint_url: endpointUrl,
             gallery_compatible: app.gallery_compatible ?? false,
             // Preserve existing display customizations
