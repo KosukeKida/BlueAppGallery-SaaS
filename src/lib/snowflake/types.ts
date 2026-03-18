@@ -159,6 +159,7 @@ export interface AppInfo {
   app_type: 'native_app' | 'streamlit_cp' | 'streamlit_wh';
   compute_pool: string | null;
   service_name: string | null;
+  postgres_instance: string | null;
   endpoint_url: string | null;
   gallery_compatible: boolean;
   managed_status: string;
