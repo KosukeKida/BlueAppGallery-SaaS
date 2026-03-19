@@ -95,22 +95,22 @@ export default function GalleryPage() {
   }, []);
 
   const fetchData = useCallback(async () => {
-    const [catalogRes, leasesRes, connRes, promoRes] = await Promise.all([
-      fetch('/api/catalog'),
-      fetch('/api/leases?quick=true'),
-      fetch('/api/connections'),
-      fetch('/api/promotions'),
-    ]);
+    // Catalog is the critical path — show cards as soon as it arrives
+    const catalogRes = await fetch('/api/catalog');
     if (catalogRes.ok) {
       const data = await catalogRes.json();
       const catalog = data.catalog || [];
       setDbApps(catalog);
       setHasCatalog(catalog.length > 0);
     }
-    if (promoRes.ok) {
-      const data = await promoRes.json();
-      setPromoCards(data.cards || []);
-    }
+    setLoading(false);
+
+    // Load the rest in parallel without blocking card display
+    const [leasesRes, connRes, promoRes] = await Promise.all([
+      fetch('/api/leases?quick=true'),
+      fetch('/api/connections'),
+      fetch('/api/promotions'),
+    ]);
     if (leasesRes.ok) {
       const data = await leasesRes.json();
       const allLeases: ActiveLease[] = data.leases || [];
@@ -131,7 +131,10 @@ export default function GalleryPage() {
       const data = await connRes.json();
       setHasConnections((data.connections || []).length > 0);
     }
-    setLoading(false);
+    if (promoRes.ok) {
+      const data = await promoRes.json();
+      setPromoCards(data.cards || []);
+    }
   }, []);
 
   useEffect(() => {
