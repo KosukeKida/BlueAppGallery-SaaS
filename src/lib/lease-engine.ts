@@ -9,8 +9,6 @@ import type {
   HeartbeatData,
 } from './snowflake/types';
 import { isStatusAll } from './snowflake/types';
-import type { TierLimits } from './tier';
-import { getTierLimits, isWithinLimit } from './tier';
 
 // ============================================================
 // Connection record from Supabase
@@ -60,25 +58,8 @@ export async function launchApp(params: {
   durationMinutes: number;
   userId: string;
   userName?: string;
-  tier?: string;
 }): Promise<{ ok: true; data: LaunchData | ExtendData } | { ok: false; error: string; code?: string }> {
-  const { supabase, connection, appName, durationMinutes, userId, userName, tier } = params;
-
-  // Tier enforcement (SaaS-side only)
-  const limits = getTierLimits(tier);
-  if (durationMinutes > limits.maxDurationMinutes) {
-    return {
-      ok: false,
-      error: `Duration ${durationMinutes}min exceeds tier limit (${limits.maxDurationMinutes}min)`,
-      code: 'TIER_LIMIT_EXCEEDED',
-    };
-  }
-
-  // Check concurrent lease limit
-  const concurrentCheck = await checkConcurrentLeaseLimit(supabase, connection.tenant_id, limits);
-  if (!concurrentCheck.ok) {
-    return concurrentCheck;
-  }
+  const { supabase, connection, appName, durationMinutes, userId, userName } = params;
 
   const client = createSnowflakeClient(connection);
 
@@ -359,32 +340,6 @@ export async function recordHeartbeat(params: {
   }
 
   return response;
-}
-
-// ============================================================
-// Helpers
-// ============================================================
-
-async function checkConcurrentLeaseLimit(
-  supabase: SupabaseClient,
-  tenantId: string,
-  limits: TierLimits,
-): Promise<{ ok: true } | { ok: false; error: string; code: string }> {
-  const { count } = await supabase
-    .from('leases')
-    .select('id', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId)
-    .eq('status', 'ACTIVE');
-
-  if (!isWithinLimit(count ?? 0, limits.maxConcurrentLeases)) {
-    return {
-      ok: false,
-      error: `Concurrent lease limit reached (${limits.maxConcurrentLeases})`,
-      code: 'TIER_LIMIT_EXCEEDED',
-    };
-  }
-
-  return { ok: true };
 }
 
 // ============================================================
