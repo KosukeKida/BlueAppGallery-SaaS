@@ -260,6 +260,35 @@ export default function GalleryPage() {
 
   const [discovering, setDiscovering] = useState<string | null>(null);
 
+  // Extend lease
+  const handleExtend = async (leaseId: string, durationMinutes: number) => {
+    const res = await fetch(`/api/leases/${leaseId}/extend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ durationMinutes }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error('Failed to extend lease', { description: data.error });
+      return;
+    }
+    toast.success(`Extended by ${durationMinutes} minutes`);
+    await refreshLeasesQuick();
+  };
+
+  // Stop lease
+  const handleStop = async (leaseId: string) => {
+    const res = await fetch(`/api/leases/${leaseId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error('Failed to stop app', { description: data.error });
+      return;
+    }
+    toast.success('App stopped');
+    setDetailApp(null);
+    setLeases((prev) => prev.filter((l) => l.id !== leaseId));
+  };
+
   // Open SPCS endpoint URL in a new tab
   const openEndpoint = (rawUrl: string) => {
     const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
@@ -495,6 +524,8 @@ export default function GalleryPage() {
         lease={detailApp ? getActiveLease(detailApp) : null}
         onLaunch={(app) => setLaunchApp(app)}
         onOpen={handleOpenApp}
+        onExtend={handleExtend}
+        onStop={handleStop}
         isDiscovering={detailApp ? discovering === detailApp.id : false}
       />
 
