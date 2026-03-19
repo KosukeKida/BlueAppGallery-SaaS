@@ -18,11 +18,11 @@ export type TierName = 'free' | 'pro' | 'enterprise';
 
 const TIER_DEFINITIONS: Record<TierName, TierLimits> = {
   free: {
-    maxDurationMinutes: 60,
-    maxConcurrentLeases: 1,
-    maxExtensionsPerLease: 2,
-    maxApps: 3,
-    maxMembers: 1,
+    maxDurationMinutes: 1440,
+    maxConcurrentLeases: -1,
+    maxExtensionsPerLease: -1,
+    maxApps: -1,
+    maxMembers: -1,
     heartbeatIntervalSeconds: 60,
   },
   pro: {
