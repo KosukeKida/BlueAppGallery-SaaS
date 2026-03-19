@@ -10,7 +10,7 @@ import type {
 } from './snowflake/types';
 import { isStatusAll } from './snowflake/types';
 import type { TierLimits } from './tier';
-import { getTierLimits } from './tier';
+import { getTierLimits, isWithinLimit } from './tier';
 
 // ============================================================
 // Connection record from Supabase
@@ -376,7 +376,7 @@ async function checkConcurrentLeaseLimit(
     .eq('tenant_id', tenantId)
     .eq('status', 'ACTIVE');
 
-  if ((count ?? 0) >= limits.maxConcurrentLeases) {
+  if (!isWithinLimit(count ?? 0, limits.maxConcurrentLeases)) {
     return {
       ok: false,
       error: `Concurrent lease limit reached (${limits.maxConcurrentLeases})`,
