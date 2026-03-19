@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -206,25 +206,32 @@ export default function InsightsPage() {
               </CardHeader>
               <CardContent>
                 {mounted && (data?.appRanking.length ?? 0) > 0 ? (
-                  <ResponsiveContainer width="100%" height={Math.max(200, (data!.appRanking.length) * 38)}>
+                  <ResponsiveContainer width="100%" height={Math.max(200, data!.appRanking.length * 38)}>
                     <BarChart
                       data={data!.appRanking}
                       layout="vertical"
-                      margin={{ top: 0, right: 48, bottom: 0, left: 8 }}
+                      margin={{ top: 0, right: 48, bottom: 0, left: 4 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                       <XAxis type="number" tick={{ fontSize: 11 }} unit="h" />
-                      <YAxis
-                        type="category"
-                        dataKey="displayName"
-                        width={140}
-                        tick={{ fontSize: 11 }}
-                      />
+                      <YAxis type="category" dataKey="displayName" hide />
                       <Tooltip
                         formatter={(v) => [`${v}h`, 'Usage']}
                         labelFormatter={(l) => l}
                       />
-                      <Bar dataKey="totalHours" fill="#4f46e5" radius={[0, 4, 4, 0]} label={{ position: 'right', fontSize: 11, formatter: (v: unknown) => `${v}h` }} />
+                      <Bar dataKey="totalHours" fill="#4f46e5" radius={[0, 4, 4, 0]}>
+                        <LabelList
+                          dataKey="displayName"
+                          position="insideLeft"
+                          style={{ fill: 'white', fontSize: 11, fontWeight: 500 }}
+                        />
+                        <LabelList
+                          dataKey="totalHours"
+                          position="right"
+                          formatter={(v: unknown) => `${v}h`}
+                          style={{ fontSize: 11 }}
+                        />
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
