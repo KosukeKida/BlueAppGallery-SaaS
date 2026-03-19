@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 const mainNavItems = [
   { href: '/gallery', label: 'Gallery', icon: '🖥' },
   { href: '/leases', label: 'Leases', icon: '⏱' },
+  { href: '/insights', label: 'Usage Insights', icon: '📊' },
 ];
 
 const settingsNavItems = [
