@@ -42,6 +42,7 @@ function durationHours(created_at: string, expires_at: string, status: string): 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const period = (searchParams.get('period') ?? 'month') as Period;
+  const appFilter = searchParams.get('app'); // optional: filter trend/heatmap to one app
 
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -149,28 +150,39 @@ export async function GET(request: Request) {
     .sort((a, b) => b.totalHours - a.totalHours)
     .slice(0, 10);
 
-  // Trend: group by date, fill gaps with 0
-  const trendMap = new Map<string, { hours: number; leaseCount: number }>();
-  for (const l of leases) {
+  // Trend/Heatmap: optionally filter to a single app
+  const trendLeases = appFilter ? leases.filter((l) => l.app_name === appFilter) : leases;
+
+  // Trend: group by date with uniqueUsers + avgDuration, fill gaps with 0
+  const trendMap = new Map<string, { hours: number; leaseCount: number; users: Set<string> }>();
+  for (const l of trendLeases) {
     const date = l.created_at.slice(0, 10);
-    const e = trendMap.get(date) ?? { hours: 0, leaseCount: 0 };
+    const e = trendMap.get(date) ?? { hours: 0, leaseCount: 0, users: new Set<string>() };
     e.hours += durationHours(l.created_at, l.expires_at, l.status);
     e.leaseCount++;
+    if (l.initiated_by) e.users.add(l.initiated_by);
     trendMap.set(date, e);
   }
-  const trend: { date: string; hours: number; leaseCount: number }[] = [];
+  const trend: { date: string; hours: number; leaseCount: number; uniqueUsers: number; avgDuration: number }[] = [];
   const cursor = new Date(currentStart);
   const now = new Date();
   while (cursor <= now) {
     const key = cursor.toISOString().slice(0, 10);
-    const e = trendMap.get(key) ?? { hours: 0, leaseCount: 0 };
-    trend.push({ date: key, hours: Math.round(e.hours * 10) / 10, leaseCount: e.leaseCount });
+    const e = trendMap.get(key) ?? { hours: 0, leaseCount: 0, users: new Set<string>() };
+    const h = Math.round(e.hours * 10) / 10;
+    trend.push({
+      date: key,
+      hours: h,
+      leaseCount: e.leaseCount,
+      uniqueUsers: e.users.size,
+      avgDuration: e.leaseCount > 0 ? Math.round(e.hours / e.leaseCount * 10) / 10 : 0,
+    });
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  // Heatmap: day[0-6 Sun-Sat] × hour[0-23]
+  // Heatmap: day[0-6 Sun-Sat] × hour[0-23] — also filtered by app
   const heatmapCounts = Array.from({ length: 7 }, () => Array(24).fill(0) as number[]);
-  for (const l of leases) {
+  for (const l of trendLeases) {
     const dt = new Date(l.created_at);
     heatmapCounts[dt.getDay()][dt.getHours()]++;
   }
