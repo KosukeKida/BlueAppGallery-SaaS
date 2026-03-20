@@ -13,15 +13,6 @@ const ROLE_LEVEL: Record<Role, number> = {
   member: 1,
 };
 
-const SAAS_OWNER_EMAILS = (process.env.NEXT_PUBLIC_SAAS_OWNER_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-
-function hasAccess(userRole: Role, minRole: Visibility, userEmail: string): boolean {
-  if (minRole === 'saas_owner') {
-    return SAAS_OWNER_EMAILS.includes(userEmail.toLowerCase());
-  }
-  return ROLE_LEVEL[userRole] >= ROLE_LEVEL[minRole];
-}
-
 interface NavItem {
   href: string;
   label: string;
@@ -50,10 +41,16 @@ const settingsNavItems: NavItem[] = [
 interface SidebarProps {
   userEmail: string;
   userRole?: Role;
+  isSaasOwner?: boolean;
 }
 
-export function Sidebar({ userEmail, userRole = 'member' }: SidebarProps) {
+export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false }: SidebarProps) {
   const pathname = usePathname();
+
+  const canAccess = (minRole: Visibility): boolean => {
+    if (minRole === 'saas_owner') return isSaasOwner;
+    return ROLE_LEVEL[userRole] >= ROLE_LEVEL[minRole];
+  };
 
   const renderNavItem = (item: NavItem) => {
     const isActive =
@@ -75,13 +72,8 @@ export function Sidebar({ userEmail, userRole = 'member' }: SidebarProps) {
     );
   };
 
-  const visibleMain = mainNavItems.filter(
-    (item) => hasAccess(userRole, item.minRole, userEmail)
-  );
-
-  const visibleSettings = settingsNavItems.filter(
-    (item) => hasAccess(userRole, item.minRole, userEmail)
-  );
+  const visibleMain = mainNavItems.filter((item) => canAccess(item.minRole));
+  const visibleSettings = settingsNavItems.filter((item) => canAccess(item.minRole));
 
   return (
     <aside className="w-64 border-r bg-muted/30 flex flex-col">

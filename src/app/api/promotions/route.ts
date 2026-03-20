@@ -2,10 +2,17 @@ import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getTenantId } from '@/lib/get-connection';
 
-const SAAS_OWNER_EMAILS = (process.env.NEXT_PUBLIC_SAAS_OWNER_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-
-function isSaasOwner(email: string): boolean {
-  return SAAS_OWNER_EMAILS.includes(email.toLowerCase());
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function requireSaasOwner(supabase: any, userId: string, tenantId: string): Promise<boolean> {
+  const saasOwnerTenantId = process.env.SAAS_OWNER_TENANT_ID ?? '';
+  if (!saasOwnerTenantId || tenantId !== saasOwnerTenantId) return false;
+  const { data } = await supabase
+    .from('tenant_members')
+    .select('role')
+    .eq('user_id', userId)
+    .eq('tenant_id', tenantId)
+    .single();
+  return data?.role === 'admin' || data?.role === 'owner';
 }
 
 // GET /api/promotions - List promotion cards for current tenant
@@ -45,7 +52,7 @@ export async function POST(request: Request) {
   const tenantId = await getTenantId(supabase, user.id);
   if (!tenantId) return NextResponse.json({ error: 'No tenant found' }, { status: 404 });
 
-  if (!isSaasOwner(user.email ?? '')) {
+  if (!await requireSaasOwner(supabase, user.id, tenantId)) {
     return NextResponse.json({ error: 'SaaS owner access required' }, { status: 403 });
   }
 
@@ -83,7 +90,7 @@ export async function PATCH(request: Request) {
   const tenantId = await getTenantId(supabase, user.id);
   if (!tenantId) return NextResponse.json({ error: 'No tenant found' }, { status: 404 });
 
-  if (!isSaasOwner(user.email ?? '')) {
+  if (!await requireSaasOwner(supabase, user.id, tenantId)) {
     return NextResponse.json({ error: 'SaaS owner access required' }, { status: 403 });
   }
 
@@ -122,7 +129,7 @@ export async function DELETE(request: Request) {
   const tenantId = await getTenantId(supabase, user.id);
   if (!tenantId) return NextResponse.json({ error: 'No tenant found' }, { status: 404 });
 
-  if (!isSaasOwner(user.email ?? '')) {
+  if (!await requireSaasOwner(supabase, user.id, tenantId)) {
     return NextResponse.json({ error: 'SaaS owner access required' }, { status: 403 });
   }
 
