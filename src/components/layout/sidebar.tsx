@@ -24,17 +24,20 @@ const mainNavItems: NavItem[] = [
   { href: '/gallery', label: 'Gallery', icon: '🖥', minRole: 'member' },
   { href: '/leases', label: 'Leases', icon: '⏱', minRole: 'member' },
   { href: '/insights', label: 'Usage Insights', icon: '📊', minRole: 'member' },
+  { href: '/user-guide', label: 'User Guide', icon: '📖', minRole: 'member' },
 ];
 
 const settingsNavItems: NavItem[] = [
   { href: '/settings/general', label: 'General', icon: '⚙', minRole: 'member' },
-  { href: '/user-guide', label: 'User Guide', icon: '📖', minRole: 'member' },
   { href: '/settings/catalog', label: 'App Catalog', icon: '📋', minRole: 'admin' },
   { href: '/settings/schedules', label: 'Schedules', icon: '🕐', minRole: 'admin' },
   { href: '/settings/connections', label: 'Connections', icon: '🔌', minRole: 'owner' },
   { href: '/settings/members', label: 'Members', icon: '👥', minRole: 'owner' },
   { href: '/settings/audit-log', label: 'Audit Log', icon: '📜', minRole: 'owner' },
   { href: '/setup-guide', label: 'Setup Guide', icon: '🔧', minRole: 'owner' },
+];
+
+const saasAdminNavItems: NavItem[] = [
   { href: '/settings/promotions', label: 'Promotions', icon: '📢', minRole: 'saas_owner' },
 ];
 
@@ -42,9 +45,11 @@ interface SidebarProps {
   userEmail: string;
   userRole?: Role;
   isSaasOwner?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false }: SidebarProps) {
+export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const canAccess = (minRole: Visibility): boolean => {
@@ -59,6 +64,7 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false }:
       <Link
         key={item.href}
         href={item.href}
+        onClick={onClose}
         className={cn(
           'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
           isActive
@@ -74,14 +80,18 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false }:
 
   const visibleMain = mainNavItems.filter((item) => canAccess(item.minRole));
   const visibleSettings = settingsNavItems.filter((item) => canAccess(item.minRole));
+  const visibleSaasAdmin = saasAdminNavItems.filter((item) => canAccess(item.minRole));
 
-  return (
-    <aside className="w-64 border-r bg-muted/30 flex flex-col">
+  const sidebarContent = (
+    <>
       <div className="p-4 border-b">
-        <h1 className="text-lg font-bold">App Gallery</h1>
-        <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+        <div className="flex items-center gap-2">
+          <span className="text-xl">💎</span>
+          <h1 className="text-lg font-bold">Blue App Gallery</h1>
+        </div>
+        <p className="text-xs text-muted-foreground truncate mt-1">{userEmail}</p>
       </div>
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {visibleMain.map(renderNavItem)}
         {visibleSettings.length > 0 && (
           <>
@@ -93,10 +103,42 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false }:
             {visibleSettings.map(renderNavItem)}
           </>
         )}
+        {visibleSaasAdmin.length > 0 && (
+          <>
+            <div className="pt-3 pb-1">
+              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                SaaS Admin
+              </p>
+            </div>
+            {visibleSaasAdmin.map(renderNavItem)}
+          </>
+        )}
       </nav>
       <div className="p-4 border-t text-xs text-muted-foreground">
-        Snowflake App Gallery
+        Blue App Works
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-64 border-r bg-muted/30 flex-col shrink-0">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile overlay */}
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={onClose}
+          />
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r flex flex-col md:hidden">
+            {sidebarContent}
+          </aside>
+        </>
+      )}
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { InfraSidebar } from '@/components/layout/infra-sidebar';
+import { MobileShell } from '@/components/layout/mobile-shell';
 
 export default async function DashboardLayout({
   children,
@@ -34,13 +35,12 @@ export default async function DashboardLayout({
     && (role === 'owner' || role === 'admin');
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar userEmail={email} userRole={role} isSaasOwner={isSaasOwner} />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Header userEmail={email} />
-        <main className="flex-1 p-8">{children}</main>
-      </div>
-      <InfraSidebar />
-    </div>
+    <MobileShell
+      userEmail={email}
+      userRole={role}
+      isSaasOwner={isSaasOwner}
+    >
+      {children}
+    </MobileShell>
   );
 }
