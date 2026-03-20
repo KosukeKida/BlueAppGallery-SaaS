@@ -24,12 +24,13 @@ interface PoolItem {
 
 interface PgItem {
   name: string;
+  isRunning: boolean;
 }
 
 export function InfraSidebar() {
   const [dbApps, setDbApps] = useState<AppCatalogItem[]>([]);
   const [leases, setLeases] = useState<ActiveLease[]>([]);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [catalogRes, leasesRes] = await Promise.all([
@@ -72,6 +73,15 @@ export function InfraSidebar() {
     return running;
   }, [leases]);
 
+  // Build set of running compute pools (used to derive Postgres running status)
+  const runningPools = useMemo(() => {
+    const set = new Set<string>();
+    for (const lease of leases) {
+      if (lease.compute_pool) set.add(lease.compute_pool);
+    }
+    return set;
+  }, [leases]);
+
   // Flat list of unique compute pools
   const pools = useMemo(() => {
     const poolMap = new Map<string, PoolItem>();
@@ -86,104 +96,115 @@ export function InfraSidebar() {
     return [...poolMap.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [apps, runningResources]);
 
-  // Flat list of unique postgres instances
+  // Flat list of unique postgres instances with running status
+  // A Postgres instance is "running" if any app using it has an active lease
   const pgInstances = useMemo(() => {
     const pgMap = new Map<string, PgItem>();
     for (const app of apps) {
       const pgName = app.postgres_instance;
-      if (!pgName || pgMap.has(pgName)) continue;
-      pgMap.set(pgName, { name: pgName });
+      if (!pgName) continue;
+      const existing = pgMap.get(pgName);
+      const appIsRunning = !!(app.compute_pool && runningPools.has(app.compute_pool));
+      if (!existing) {
+        pgMap.set(pgName, { name: pgName, isRunning: appIsRunning });
+      } else if (appIsRunning) {
+        existing.isRunning = true;
+      }
     }
     return [...pgMap.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [apps]);
+  }, [apps, runningPools]);
 
-  const runningCount = pools.filter((p) => p.isRunning).length;
-
-  // Toggle button (always visible)
-  const toggleButton = (
-    <button
-      type="button"
-      onClick={() => setIsOpen(!isOpen)}
-      className="hidden xl:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-12 items-center justify-center bg-muted border border-r-0 rounded-l-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
-      title={isOpen ? 'Hide Infrastructure' : 'Show Infrastructure'}
-    >
-      <span className="text-xs">{isOpen ? '›' : '‹'}</span>
-    </button>
-  );
-
-  if (!isOpen) {
-    return toggleButton;
-  }
+  const runningPoolCount = pools.filter((p) => p.isRunning).length;
 
   return (
     <>
-      {toggleButton}
-      <aside className="hidden xl:flex w-64 border-l bg-muted/30 flex-col shrink-0">
-        {/* Header */}
-        <div className="p-4 border-b">
-          <h2 className="text-sm font-bold">Infrastructure</h2>
-          <p className="text-xs text-muted-foreground">
-            {runningCount}/{pools.length} pools running
-          </p>
-        </div>
+      {/* Toggle button — always visible */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-12 flex items-center justify-center bg-muted border border-r-0 rounded-l-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+        style={isOpen ? { right: '256px' } : undefined}
+        title={isOpen ? 'Hide Infrastructure' : 'Show Infrastructure'}
+      >
+        <span className="text-xs">{isOpen ? '›' : '‹'}</span>
+      </button>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-4">
-          {/* Compute Pools — flat list */}
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 mb-2">
-              Compute Pools
+      {isOpen && (
+        <aside className="w-64 border-l bg-muted/30 flex flex-col shrink-0">
+          {/* Header */}
+          <div className="p-4 border-b">
+            <h2 className="text-sm font-bold">Infrastructure</h2>
+            <p className="text-xs text-muted-foreground">
+              {runningPoolCount}/{pools.length} pools running
+            </p>
+          </div>
+
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-4">
+            {/* Compute Pools — flat list */}
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 mb-2">
+                Compute Pools
+              </div>
+              {pools.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2">None</p>
+              ) : (
+                <div className="space-y-0.5">
+                  {pools.map((pool) => (
+                    <div
+                      key={pool.name}
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+                    >
+                      <span className="text-base">🖥</span>
+                      <span
+                        className={cn(
+                          'w-2 h-2 rounded-full shrink-0',
+                          pool.isRunning
+                            ? 'bg-green-500 animate-pulse'
+                            : 'bg-muted-foreground/50'
+                        )}
+                      />
+                      <span className="font-medium text-xs truncate flex-1">
+                        {pool.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {pools.length === 0 ? (
-              <p className="text-xs text-muted-foreground px-2">None</p>
-            ) : (
-              <div className="space-y-0.5">
-                {pools.map((pool) => (
-                  <div
-                    key={pool.name}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
-                  >
-                    <span className="text-base">🖥</span>
-                    <span
-                      className={cn(
-                        'w-2 h-2 rounded-full shrink-0',
-                        pool.isRunning
-                          ? 'bg-green-500 animate-pulse'
-                          : 'bg-muted-foreground/50'
-                      )}
-                    />
-                    <span className="font-medium text-xs truncate flex-1">
-                      {pool.name}
-                    </span>
-                  </div>
-                ))}
+
+            {/* Postgres Instances — flat list with running status */}
+            {pgInstances.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 mb-2">
+                  Postgres Instances
+                </div>
+                <div className="space-y-0.5">
+                  {pgInstances.map((pg) => (
+                    <div
+                      key={pg.name}
+                      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+                    >
+                      <span className="text-sm">🐘</span>
+                      <span
+                        className={cn(
+                          'w-2 h-2 rounded-full shrink-0',
+                          pg.isRunning
+                            ? 'bg-green-500 animate-pulse'
+                            : 'bg-muted-foreground/50'
+                        )}
+                      />
+                      <span className="font-medium text-xs truncate flex-1">
+                        {pg.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
-
-          {/* Postgres Instances — flat list */}
-          {pgInstances.length > 0 && (
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 mb-2">
-                Postgres Instances
-              </div>
-              <div className="space-y-0.5">
-                {pgInstances.map((pg) => (
-                  <div
-                    key={pg.name}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
-                  >
-                    <span className="text-sm">🐘</span>
-                    <span className="font-medium text-xs truncate flex-1">
-                      {pg.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </aside>
+        </aside>
+      )}
     </>
   );
 }
