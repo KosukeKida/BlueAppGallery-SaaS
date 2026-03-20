@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Snowflake App Gallery",
+  title: "Blue App Gallery",
   description: "Manage and launch Snowflake Native Apps",
+  icons: {
+    icon: "/blueappworks-logo.png",
+  },
 };
 
 export default function RootLayout({
