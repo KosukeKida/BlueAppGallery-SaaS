@@ -185,7 +185,7 @@ export function InfraSidebar() {
                       key={pg.name}
                       className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
                     >
-                      <img src="/icons/postgres.svg" alt="Postgres" className="w-5 h-5 shrink-0" />
+                      <img src="/icons/postgres.png" alt="Postgres" className="w-5 h-5 shrink-0" />
                       <span
                         className={cn(
                           'w-2 h-2 rounded-full shrink-0',
