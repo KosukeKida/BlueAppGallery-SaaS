@@ -4,24 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-const mainNavItems = [
-  { href: '/gallery', label: 'Gallery', icon: '🖥' },
-  { href: '/leases', label: 'Leases', icon: '⏱' },
-  { href: '/insights', label: 'Usage Insights', icon: '📊' },
-];
-
-const settingsNavItems = [
-  { href: '/settings/general', label: 'General', icon: '⚙', minRole: 'member' as const },
-  { href: '/settings/connections', label: 'Connections', icon: '🔌', minRole: 'admin' as const },
-  { href: '/settings/catalog', label: 'App Catalog', icon: '📋', minRole: 'admin' as const },
-  { href: '/settings/members', label: 'Members', icon: '👥', minRole: 'admin' as const },
-  { href: '/settings/schedules', label: 'Schedules', icon: '🕐', minRole: 'admin' as const },
-  { href: '/settings/promotions', label: 'Promotions', icon: '📢', minRole: 'admin' as const },
-  { href: '/settings/audit-log', label: 'Audit Log', icon: '📜', minRole: 'admin' as const },
-  { href: '/setup-guide', label: 'Setup Guide', icon: '📖', minRole: 'member' as const },
-];
-
 type Role = 'owner' | 'admin' | 'member';
+type Visibility = Role | 'saas_owner';
 
 const ROLE_LEVEL: Record<Role, number> = {
   owner: 3,
@@ -29,9 +13,39 @@ const ROLE_LEVEL: Record<Role, number> = {
   member: 1,
 };
 
-function hasAccess(userRole: Role, minRole: Role): boolean {
+const SAAS_OWNER_EMAILS = (process.env.NEXT_PUBLIC_SAAS_OWNER_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+
+function hasAccess(userRole: Role, minRole: Visibility, userEmail: string): boolean {
+  if (minRole === 'saas_owner') {
+    return SAAS_OWNER_EMAILS.includes(userEmail.toLowerCase());
+  }
   return ROLE_LEVEL[userRole] >= ROLE_LEVEL[minRole];
 }
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  minRole: Visibility;
+}
+
+const mainNavItems: NavItem[] = [
+  { href: '/gallery', label: 'Gallery', icon: '🖥', minRole: 'member' },
+  { href: '/leases', label: 'Leases', icon: '⏱', minRole: 'member' },
+  { href: '/insights', label: 'Usage Insights', icon: '📊', minRole: 'member' },
+];
+
+const settingsNavItems: NavItem[] = [
+  { href: '/settings/general', label: 'General', icon: '⚙', minRole: 'member' },
+  { href: '/user-guide', label: 'User Guide', icon: '📖', minRole: 'member' },
+  { href: '/settings/catalog', label: 'App Catalog', icon: '📋', minRole: 'admin' },
+  { href: '/settings/schedules', label: 'Schedules', icon: '🕐', minRole: 'admin' },
+  { href: '/settings/connections', label: 'Connections', icon: '🔌', minRole: 'owner' },
+  { href: '/settings/members', label: 'Members', icon: '👥', minRole: 'owner' },
+  { href: '/settings/audit-log', label: 'Audit Log', icon: '📜', minRole: 'owner' },
+  { href: '/setup-guide', label: 'Setup Guide', icon: '🔧', minRole: 'owner' },
+  { href: '/settings/promotions', label: 'Promotions', icon: '📢', minRole: 'saas_owner' },
+];
 
 interface SidebarProps {
   userEmail: string;
@@ -41,7 +55,7 @@ interface SidebarProps {
 export function Sidebar({ userEmail, userRole = 'member' }: SidebarProps) {
   const pathname = usePathname();
 
-  const renderNavItem = (item: { href: string; label: string; icon: string }) => {
+  const renderNavItem = (item: NavItem) => {
     const isActive =
       pathname === item.href || pathname.startsWith(item.href + '/');
     return (
@@ -61,8 +75,12 @@ export function Sidebar({ userEmail, userRole = 'member' }: SidebarProps) {
     );
   };
 
+  const visibleMain = mainNavItems.filter(
+    (item) => hasAccess(userRole, item.minRole, userEmail)
+  );
+
   const visibleSettings = settingsNavItems.filter(
-    (item) => hasAccess(userRole, item.minRole)
+    (item) => hasAccess(userRole, item.minRole, userEmail)
   );
 
   return (
@@ -72,7 +90,7 @@ export function Sidebar({ userEmail, userRole = 'member' }: SidebarProps) {
         <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
       </div>
       <nav className="flex-1 p-3 space-y-1">
-        {mainNavItems.map(renderNavItem)}
+        {visibleMain.map(renderNavItem)}
         {visibleSettings.length > 0 && (
           <>
             <div className="pt-3 pb-1">

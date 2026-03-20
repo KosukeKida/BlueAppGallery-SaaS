@@ -2,15 +2,10 @@ import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getTenantId } from '@/lib/get-connection';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function requireAdmin(supabase: any, userId: string, tenantId: string) {
-  const { data } = await supabase
-    .from('tenant_members')
-    .select('role')
-    .eq('user_id', userId)
-    .eq('tenant_id', tenantId)
-    .single();
-  return data?.role === 'admin' || data?.role === 'owner';
+const SAAS_OWNER_EMAILS = (process.env.NEXT_PUBLIC_SAAS_OWNER_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+
+function isSaasOwner(email: string): boolean {
+  return SAAS_OWNER_EMAILS.includes(email.toLowerCase());
 }
 
 // GET /api/promotions - List promotion cards for current tenant
@@ -50,8 +45,8 @@ export async function POST(request: Request) {
   const tenantId = await getTenantId(supabase, user.id);
   if (!tenantId) return NextResponse.json({ error: 'No tenant found' }, { status: 404 });
 
-  if (!await requireAdmin(supabase, user.id, tenantId)) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!isSaasOwner(user.email ?? '')) {
+    return NextResponse.json({ error: 'SaaS owner access required' }, { status: 403 });
   }
 
   const body = await request.json();
@@ -88,8 +83,8 @@ export async function PATCH(request: Request) {
   const tenantId = await getTenantId(supabase, user.id);
   if (!tenantId) return NextResponse.json({ error: 'No tenant found' }, { status: 404 });
 
-  if (!await requireAdmin(supabase, user.id, tenantId)) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!isSaasOwner(user.email ?? '')) {
+    return NextResponse.json({ error: 'SaaS owner access required' }, { status: 403 });
   }
 
   const body = await request.json();
@@ -127,8 +122,8 @@ export async function DELETE(request: Request) {
   const tenantId = await getTenantId(supabase, user.id);
   if (!tenantId) return NextResponse.json({ error: 'No tenant found' }, { status: 404 });
 
-  if (!await requireAdmin(supabase, user.id, tenantId)) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!isSaasOwner(user.email ?? '')) {
+    return NextResponse.json({ error: 'SaaS owner access required' }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
