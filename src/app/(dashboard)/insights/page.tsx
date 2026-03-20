@@ -250,7 +250,7 @@ export default function InsightsPage() {
               </CardHeader>
               <CardContent>
                 {mounted && (data?.appRanking.length ?? 0) > 0 ? (
-                  <ResponsiveContainer width="100%" height={Math.max(200, data!.appRanking.length * 38)}>
+                  <ResponsiveContainer width="100%" height={Math.max(200, data!.appRanking.length * 38)} className="[&_.recharts-surface]:outline-none">
                     <BarChart
                       data={data!.appRanking}
                       layout="vertical"
