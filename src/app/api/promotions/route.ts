@@ -15,22 +15,25 @@ async function requireSaasOwner(supabase: any, userId: string, tenantId: string)
   return data?.role === 'admin' || data?.role === 'owner';
 }
 
-// GET /api/promotions - List promotion cards for current tenant
+// GET /api/promotions - List promotion cards (global, from SaaS owner tenant)
 export async function GET(request: Request) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const tenantId = await getTenantId(supabase, user.id);
-  if (!tenantId) return NextResponse.json({ error: 'No tenant found' }, { status: 404 });
+  const saasOwnerTenantId = process.env.SAAS_OWNER_TENANT_ID ?? '';
 
   const { searchParams } = new URL(request.url);
   const activeOnly = searchParams.get('active') !== 'false';
 
-  let query = supabase
+  // Use admin client to bypass RLS — promotions are global content
+  const { createAdminClient } = await import('@/lib/supabase/admin');
+  const admin = createAdminClient();
+
+  let query = admin
     .from('promotion_cards')
     .select('*')
-    .eq('tenant_id', tenantId)
+    .eq('tenant_id', saasOwnerTenantId)
     .order('position', { ascending: true });
 
   if (activeOnly) {
