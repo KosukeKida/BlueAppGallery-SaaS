@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { isImageIcon, getImageIconSrc } from '@/lib/icon-utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,13 @@ interface CatalogApp {
   sort_order: number;
   last_synced_at: string | null;
 }
+
+// Special image-based icons (stored as "img:<name>" in icon_emoji)
+const IMAGE_ICONS: { key: string; src: string; label: string }[] = [
+  { key: 'img:streamlit', src: '/icons/streamlit.png', label: 'Streamlit' },
+  { key: 'img:postgres', src: '/icons/postgres.png', label: 'PostgreSQL' },
+  { key: 'img:blueappworks', src: '/blueappworks-logo.png', label: 'Blue App Works' },
+];
 
 const EMOJI_OPTIONS = [
   // Business / Analytics
@@ -254,7 +262,11 @@ export default function CatalogSettingsPage() {
               {apps.map((app) => (
                 <TableRow key={app.id}>
                   <TableCell className="text-xl">
-                    {app.icon_emoji || '📦'}
+                    {isImageIcon(app.icon_emoji || '') ? (
+                      <img src={getImageIconSrc(app.icon_emoji!)!} alt="" className="w-6 h-6 object-contain" />
+                    ) : (
+                      app.icon_emoji || '📦'
+                    )}
                   </TableCell>
                   <TableCell>
                     <div>
@@ -342,6 +354,21 @@ export default function CatalogSettingsPage() {
             <div className="space-y-2">
               <Label>Icon</Label>
               <div className="flex gap-1 flex-wrap max-h-[120px] overflow-y-auto">
+                {IMAGE_ICONS.map((img) => (
+                  <button
+                    key={img.key}
+                    type="button"
+                    onClick={() => setEditEmoji(img.key)}
+                    title={img.label}
+                    className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors ${
+                      editEmoji === img.key
+                        ? 'border-primary bg-primary/10'
+                        : 'border-transparent hover:bg-muted'
+                    }`}
+                  >
+                    <img src={img.src} alt={img.label} className="w-5 h-5 object-contain" />
+                  </button>
+                ))}
                 {EMOJI_OPTIONS.map((emoji) => (
                   <button
                     key={emoji}

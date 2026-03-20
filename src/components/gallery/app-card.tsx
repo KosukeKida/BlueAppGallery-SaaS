@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { useLaunchProgress } from '@/hooks/use-launch-progress';
+import { isImageIcon, getImageIconSrc } from '@/lib/icon-utils';
 
 export interface AppCatalogItem {
   id: string;
@@ -51,7 +52,7 @@ function cleanComment(comment: string | null): string | null {
 
 export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFavorite, onClick, onOpen }: AppCardProps) {
   const displayName = app.display_name || app.app_name;
-  const icon = app.icon_emoji || '📦';
+  const iconValue = app.icon_emoji || '📦';
   const iconBg = ICON_BG[app.category || ''] || 'bg-muted';
   const comment = cleanComment(app.app_comment);
 
@@ -102,7 +103,11 @@ export function AppCard({ app, isRunning, isDiscovering, isFavorite, onToggleFav
       {/* Header: Icon + Name + Version */}
       <div className="flex items-start gap-3 mb-2">
         <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0', iconBg)}>
-          {icon}
+          {isImageIcon(iconValue) ? (
+            <img src={getImageIconSrc(iconValue)!} alt="" className="w-6 h-6 object-contain" />
+          ) : (
+            iconValue
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold truncate pr-5">{displayName}</div>
