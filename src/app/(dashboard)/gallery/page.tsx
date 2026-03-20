@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { MOCK_APPS, MOCK_RUNNING_POOLS } from '@/lib/mock-data';
 import { SetupWizard } from '@/components/onboarding/setup-wizard';
 import { AppDetailDialog } from '@/components/gallery/app-detail-dialog';
 import { useAllLaunches } from '@/hooks/use-launch-progress';
@@ -64,12 +63,7 @@ export default function GalleryPage() {
     setFavorites(loadFavorites());
   }, []);
 
-  // Always show mock apps for demo; DB apps are merged on top
-  const apps = useMemo(() => {
-    const dbIds = new Set(dbApps.map((a) => a.app_name));
-    const mockOnly = MOCK_APPS.filter((m) => !dbIds.has(m.app_name));
-    return [...dbApps, ...mockOnly];
-  }, [dbApps]);
+  const apps = dbApps;
 
   // Lightweight lease refresh (Supabase-only, no Snowflake API call)
   const refreshLeasesQuick = useCallback(async () => {
@@ -237,8 +231,7 @@ export default function GalleryPage() {
 
   // Running status based on compute pool
   const isRunning = (app: AppCatalogItem) =>
-    leases.some((l) => l.compute_pool === app.compute_pool) ||
-    (leases.length === 0 && MOCK_RUNNING_POOLS.has(app.compute_pool ?? ''));
+    leases.some((l) => l.compute_pool === app.compute_pool);
 
   // Find active lease for an app
   const getActiveLease = (app: AppCatalogItem) =>

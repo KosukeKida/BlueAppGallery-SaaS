@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { MOCK_APPS, MOCK_RUNNING_POOLS, POOL_SIZES } from '@/lib/mock-data';
 import type { AppCatalogItem } from '@/components/gallery/app-card';
 import type { ComputePoolInfo, ServiceInfo, PostgresInstanceInfo } from '@/types/infra';
 
@@ -49,12 +48,7 @@ export function InfraSidebar() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Merge DB apps with mock apps
-  const apps = useMemo(() => {
-    const dbNames = new Set(dbApps.map((a) => a.app_name));
-    const mockOnly = MOCK_APPS.filter((m) => !dbNames.has(m.app_name));
-    return [...dbApps, ...mockOnly];
-  }, [dbApps]);
+  const apps = dbApps;
 
   // Build a set of running resource names from lease resources array
   const runningResources = useMemo(() => {
@@ -81,12 +75,10 @@ export function InfraSidebar() {
       const poolName = app.compute_pool;
       if (!poolName) continue;
       if (!poolMap.has(poolName)) {
-        const isRunning =
-          runningResources.has(poolName) ||
-          (leases.length === 0 && MOCK_RUNNING_POOLS.has(poolName));
+        const isRunning = runningResources.has(poolName);
         poolMap.set(poolName, {
           name: poolName,
-          size: POOL_SIZES[poolName] || '?',
+          size: '',
           isRunning,
           apps: [],
         });
