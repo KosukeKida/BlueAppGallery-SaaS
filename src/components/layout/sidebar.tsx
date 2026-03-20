@@ -87,7 +87,7 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, i
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <img src="/blueappworks-logo.png" alt="Blue App Gallery" className="h-8 w-auto shrink-0" />
-          <h1 className="text-base font-bold leading-tight">Blue App Gallery</h1>
+          <h1 className="text-base font-bold leading-tight font-brand" style={{ color: '#0E2A47' }}>Blue App Gallery</h1>
         </div>
         <p className="text-xs text-muted-foreground truncate mt-1.5">{userEmail}</p>
       </div>
@@ -115,7 +115,7 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, i
         )}
       </nav>
       <div className="p-4 border-t text-xs text-muted-foreground">
-        Blue App Works
+        <span className="font-brand font-bold" style={{ color: '#0E2A47' }}>Blue App Works</span>
       </div>
     </>
   );

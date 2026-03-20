@@ -39,7 +39,7 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Snowflake App Gallery</CardTitle>
+        <CardTitle className="text-2xl font-brand" style={{ color: '#0E2A47' }}>Blue App Gallery</CardTitle>
         <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
       <form onSubmit={handleLogin}>

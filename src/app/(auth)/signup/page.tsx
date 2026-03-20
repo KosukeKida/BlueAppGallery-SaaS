@@ -81,8 +81,8 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>Set up your App Gallery workspace</CardDescription>
+          <CardTitle className="text-2xl font-brand" style={{ color: '#0E2A47' }}>Create Account</CardTitle>
+          <CardDescription>Set up your Blue App Gallery workspace</CardDescription>
         </CardHeader>
         <form onSubmit={handleSignup}>
           <CardContent className="space-y-4">
