@@ -341,7 +341,7 @@ export default function GalleryPage() {
   if (loading) {
     return (
       <div>
-        <h2 className="text-2xl font-bold mb-6">App Gallery</h2>
+        <h2 className="text-2xl font-bold mb-6">Gallery</h2>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-[160px] rounded-xl bg-muted animate-pulse" />
@@ -370,7 +370,7 @@ export default function GalleryPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-2xl font-bold">App Gallery</h2>
+          <h2 className="text-2xl font-bold">Gallery</h2>
           <p className="text-sm text-muted-foreground">
             {filtered.length} of {apps.length} app{apps.length !== 1 ? 's' : ''}
           </p>
