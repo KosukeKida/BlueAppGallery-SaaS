@@ -86,7 +86,7 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, i
     <>
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
-          <span className="text-xl">💎</span>
+          <img src="/blueappworks-logo.png" alt="Blue App Gallery" className="w-6 h-6" />
           <h1 className="text-lg font-bold">Blue App Gallery</h1>
         </div>
         <p className="text-xs text-muted-foreground truncate mt-1">{userEmail}</p>
