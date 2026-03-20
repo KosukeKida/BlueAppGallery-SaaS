@@ -15,6 +15,7 @@ const settingsNavItems = [
   { href: '/settings/connections', label: 'Connections', icon: '🔌', minRole: 'admin' as const },
   { href: '/settings/catalog', label: 'App Catalog', icon: '📋', minRole: 'admin' as const },
   { href: '/settings/members', label: 'Members', icon: '👥', minRole: 'admin' as const },
+  { href: '/settings/schedules', label: 'Schedules', icon: '🕐', minRole: 'admin' as const },
   { href: '/settings/promotions', label: 'Promotions', icon: '📢', minRole: 'admin' as const },
   { href: '/settings/audit-log', label: 'Audit Log', icon: '📜', minRole: 'admin' as const },
   { href: '/setup-guide', label: 'Setup Guide', icon: '📖', minRole: 'member' as const },
