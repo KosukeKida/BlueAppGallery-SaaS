@@ -149,9 +149,9 @@ export default function SchedulesPage() {
     if (res.ok) {
       const data = await res.json();
       // Filter out streamlit_wh (always-on, no schedule needed)
-      const eligible = (data.apps || []).filter(
-        (a: AppOption & { app_type: string; is_visible: boolean }) =>
-          a.app_type !== 'streamlit_wh' && a.is_visible !== false
+      const eligible = (data.catalog || []).filter(
+        (a: AppOption & { app_type: string }) =>
+          a.app_type !== 'streamlit_wh'
       );
       setApps(eligible);
     }
