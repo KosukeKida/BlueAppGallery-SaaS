@@ -255,13 +255,6 @@ export default function InsightsPage() {
                       data={data!.appRanking}
                       layout="vertical"
                       margin={{ top: 0, right: 48, bottom: 0, left: 4 }}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      onClick={(state: any) => {
-                        if (state?.activePayload?.[0]?.payload) {
-                          handleBarClick(state.activePayload[0].payload);
-                        }
-                      }}
-                      style={{ cursor: 'pointer' }}
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                       <XAxis type="number" tick={{ fontSize: 11 }} unit="h" />
@@ -269,11 +262,13 @@ export default function InsightsPage() {
                       <Tooltip
                         formatter={(v) => [`${v}h`, 'Usage']}
                         labelFormatter={(l) => l}
-                        cursor={{ fill: 'transparent' }}
+                        cursor={false}
                       />
                       <Bar
                         dataKey="totalHours"
                         radius={[0, 4, 4, 0]}
+                        cursor="pointer"
+                        onClick={handleBarClick}
                       >
                         {data!.appRanking.map((entry) => (
                           <Cell
