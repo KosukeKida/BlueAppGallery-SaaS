@@ -141,12 +141,12 @@ openssl rsa -in gallery_key.p8 -pubout -out gallery_key.pub`}</CodeBlock>
 USE ROLE ACCOUNTADMIN;
 
 -- Create dedicated role for Gallery SaaS
-CREATE ROLE IF NOT EXISTS GALLERY_SAAS_ROLE
+CREATE ROLE IF NOT EXISTS BLUE_APP_GALLERY_SAAS_ROLE
   COMMENT = 'Role for App Gallery SaaS to access Operator API';
 
 -- Grant the Operator application role to this account role
 GRANT APPLICATION ROLE BLUE_APP_GALLERY.operator_saas
-  TO ROLE GALLERY_SAAS_ROLE;`}</CodeBlock>
+  TO ROLE BLUE_APP_GALLERY_SAAS_ROLE;`}</CodeBlock>
         </div>
       </div>
 
@@ -165,14 +165,14 @@ USE ROLE ACCOUNTADMIN;
 -- Read your public key (remove header/footer/newlines)
 -- Example: MIIBIjANBgkqhk...
 
-CREATE USER IF NOT EXISTS GALLERY_SAAS_USER
+CREATE USER IF NOT EXISTS BLUE_APP_GALLERY_SVC
   TYPE = SERVICE
-  DEFAULT_ROLE = GALLERY_SAAS_ROLE
+  DEFAULT_ROLE = BLUE_APP_GALLERY_SAAS_ROLE
   RSA_PUBLIC_KEY = '<paste public key content here>'
   COMMENT = 'Service user for App Gallery SaaS';
 
 -- Grant the role to the user
-GRANT ROLE GALLERY_SAAS_ROLE TO USER GALLERY_SAAS_USER;`}</CodeBlock>
+GRANT ROLE BLUE_APP_GALLERY_SAAS_ROLE TO USER BLUE_APP_GALLERY_SVC;`}</CodeBlock>
         </div>
         <div className="ml-9 border rounded-lg p-3 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
           <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -194,7 +194,7 @@ GRANT ROLE GALLERY_SAAS_ROLE TO USER GALLERY_SAAS_USER;`}</CodeBlock>
         </p>
         <div className="ml-9">
           <CodeBlock>{`-- Switch to the new role and user context
-USE ROLE GALLERY_SAAS_ROLE;
+USE ROLE BLUE_APP_GALLERY_SAAS_ROLE;
 
 -- This should return the Operator version
 CALL BLUE_APP_GALLERY.api.get_version();
@@ -265,12 +265,12 @@ function SectionSaaSConnection() {
               <tr>
                 <td className="p-3 font-mono text-xs">Username</td>
                 <td className="p-3 text-muted-foreground">The service user you created</td>
-                <td className="p-3 font-mono text-xs">GALLERY_SAAS_USER</td>
+                <td className="p-3 font-mono text-xs">BLUE_APP_GALLERY_SVC</td>
               </tr>
               <tr>
                 <td className="p-3 font-mono text-xs">Role</td>
                 <td className="p-3 text-muted-foreground">The account role you created</td>
-                <td className="p-3 font-mono text-xs">GALLERY_SAAS_ROLE</td>
+                <td className="p-3 font-mono text-xs">BLUE_APP_GALLERY_SAAS_ROLE</td>
               </tr>
               <tr>
                 <td className="p-3 font-mono text-xs">Private Key</td>
@@ -375,7 +375,7 @@ function SectionSyncLaunch() {
         </p>
         <div className="mt-2">
           <CodeBlock>{`GRANT APPLICATION ROLE BLUE_APP_GALLERY.operator_saas
-  TO ROLE GALLERY_SAAS_ROLE;`}</CodeBlock>
+  TO ROLE BLUE_APP_GALLERY_SAAS_ROLE;`}</CodeBlock>
         </div>
       </div>
     </div>
