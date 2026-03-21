@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 190" width="820" height="190">
+  <title>Blue App Works Logo</title>
+  <g id="logotype">
+    <text x="0" y="84.8" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" font-size="90" fill="#0E2A47" letter-spacing="0">BLUE APP</text>
+    <text x="0" y="169.6" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" font-size="90" fill="#0E2A47" letter-spacing="0">WORKS</text>
+  </g>
+  <g id="symbol" transform="translate(500,0)">
+    <defs>
+      <clipPath id="clip-r0-c0"><rect x="0" y="0" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r0-c1"><rect x="110" y="0" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r0-c2"><rect x="220" y="0" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r1-c0"><rect x="0" y="50" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r1-c1"><rect x="110" y="50" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r1-c2"><rect x="220" y="50" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r2-c0"><rect x="0" y="100" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r2-c1"><rect x="110" y="100" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r2-c2"><rect x="220" y="100" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r3-c0"><rect x="0" y="150" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r3-c1"><rect x="110" y="150" width="100" height="40" rx="10" ry="10"/></clipPath>
+      <clipPath id="clip-r3-c2"><rect x="220" y="150" width="100" height="40" rx="10" ry="10"/></clipPath>
+    </defs>
+    <g clip-path="url(#clip-r0-c0)">
+      <rect x="0" y="0" width="20" height="20" fill="#99D1E9"/>
+      <rect x="20" y="0" width="20" height="20" fill="#97D0E9"/>
+      <rect x="40" y="0" width="20" height="20" fill="#98D0E7"/>
+      <rect x="60" y="0" width="20" height="20" fill="#AADAEB"/>
+      <rect x="80" y="0" width="20" height="20" fill="#C0E3F0"/>
+      <rect x="0" y="20" width="20" height="20" fill="#7FC0E4"/>
+      <rect x="20" y="20" width="20" height="20" fill="#83C2E4"/>
+      <rect x="40" y="20" width="20" height="20" fill="#81C2E5"/>
+      <rect x="60" y="20" width="20" height="20" fill="#92CEE6"/>
+      <rect x="80" y="20" width="20" height="20" fill="#A8D8E7"/>
+    </g>
+    <g clip-path="url(#clip-r0-c1)">
+      <rect x="110" y="0" width="20" height="20" fill="#ADDFEA"/>
+      <rect x="130" y="0" width="20" height="20" fill="#9AD4DD"/>
+      <rect x="150" y="0" width="20" height="20" fill="#99D2DC"/>
+      <rect x="170" y="0" width="20" height="20" fill="#9BD5DD"/>
+      <rect x="190" y="0" width="20" height="20" fill="#7FC5D7"/>
+      <rect x="110" y="20" width="20" height="20" fill="#95D1E4"/>
+      <rect x="130" y="20" width="20" height="20" fill="#7ACCDB"/>
+      <rect x="150" y="20" width="20" height="20" fill="#78CADB"/>
+      <rect x="170" y="20" width="20" height="20" fill="#82CDD9"/>
+      <rect x="190" y="20" width="20" height="20" fill="#65BFD8"/>
+    </g>
+    <g clip-path="url(#clip-r0-c2)">
+      <rect x="220" y="0" width="20" height="20" fill="#81C3D5"/>
+      <rect x="240" y="0" width="20" height="20" fill="#75B6D6"/>
+      <rect x="260" y="0" width="20" height="20" fill="#63A0CE"/>
+      <rect x="280" y="0" width="20" height="20" fill="#62A1CD"/>
+      <rect x="300" y="0" width="20" height="20" fill="#62A1CD"/>
+      <rect x="220" y="20" width="20" height="20" fill="#65BBD5"/>
+      <rect x="240" y="20" width="20" height="20" fill="#64A9D2"/>
+      <rect x="260" y="20" width="20" height="20" fill="#4F9BCF"/>
+      <rect x="280" y="20" width="20" height="20" fill="#4F9BCF"/>
+      <rect x="300" y="20" width="20" height="20" fill="#4E9ACF"/>
+    </g>
+    <g clip-path="url(#clip-r1-c0)">
+      <rect x="0" y="50" width="20" height="20" fill="#5EAEDC"/>
+      <rect x="20" y="50" width="20" height="20" fill="#60B0DE"/>
+      <rect x="40" y="50" width="20" height="20" fill="#5FAFDE"/>
+      <rect x="60" y="50" width="20" height="20" fill="#6EB9D6"/>
+      <rect x="80" y="50" width="20" height="20" fill="#88C9D8"/>
+      <rect x="0" y="70" width="20" height="20" fill="#4A8DC1"/>
+      <rect x="20" y="70" width="20" height="20" fill="#4B8EC3"/>
+      <rect x="40" y="70" width="20" height="20" fill="#4E8FC3"/>
+      <rect x="60" y="70" width="20" height="20" fill="#5E9FCC"/>
+      <rect x="80" y="70" width="20" height="20" fill="#74B3D5"/>
+    </g>
+    <g clip-path="url(#clip-r1-c1)">
+      <rect x="110" y="50" width="20" height="20" fill="#75C0D6"/>
+      <rect x="130" y="50" width="20" height="20" fill="#55BDD5"/>
+      <rect x="150" y="50" width="20" height="20" fill="#54BDD3"/>
+      <rect x="170" y="50" width="20" height="20" fill="#6CC2D7"/>
+      <rect x="190" y="50" width="20" height="20" fill="#47AFD2"/>
+      <rect x="110" y="70" width="20" height="20" fill="#58A6D3"/>
+      <rect x="130" y="70" width="20" height="20" fill="#38A5D3"/>
+      <rect x="150" y="70" width="20" height="20" fill="#3CA6D4"/>
+      <rect x="170" y="70" width="20" height="20" fill="#45AFDC"/>
+      <rect x="190" y="70" width="20" height="20" fill="#419BCD"/>
+    </g>
+    <g clip-path="url(#clip-r1-c2)">
+      <rect x="220" y="50" width="20" height="20" fill="#45ACCE"/>
+      <rect x="240" y="50" width="20" height="20" fill="#2E97C3"/>
+      <rect x="260" y="50" width="20" height="20" fill="#2178B2"/>
+      <rect x="280" y="50" width="20" height="20" fill="#207AB1"/>
+      <rect x="300" y="50" width="20" height="20" fill="#227BB2"/>
+      <rect x="220" y="70" width="20" height="20" fill="#399ACA"/>
+      <rect x="240" y="70" width="20" height="20" fill="#377BB4"/>
+      <rect x="260" y="70" width="20" height="20" fill="#2C6BAB"/>
+      <rect x="280" y="70" width="20" height="20" fill="#2C6AAA"/>
+      <rect x="300" y="70" width="20" height="20" fill="#2C6CA9"/>
+    </g>
+    <g clip-path="url(#clip-r2-c0)">
+      <rect x="0" y="100" width="20" height="20" fill="#467DB6"/>
+      <rect x="20" y="100" width="20" height="20" fill="#477DB4"/>
+      <rect x="40" y="100" width="20" height="20" fill="#477CB5"/>
+      <rect x="60" y="100" width="20" height="20" fill="#4F8EC3"/>
+      <rect x="80" y="100" width="20" height="20" fill="#59A3C8"/>
+      <rect x="0" y="120" width="20" height="20" fill="#3A5CA1"/>
+      <rect x="20" y="120" width="20" height="20" fill="#3A5DA5"/>
+      <rect x="40" y="120" width="20" height="20" fill="#3B5DA4"/>
+      <rect x="60" y="120" width="20" height="20" fill="#4572B5"/>
+      <rect x="80" y="120" width="20" height="20" fill="#4F8BC2"/>
+    </g>
+    <g clip-path="url(#clip-r2-c1)">
+      <rect x="110" y="100" width="20" height="20" fill="#4B95C6"/>
+      <rect x="130" y="100" width="20" height="20" fill="#3781BB"/>
+      <rect x="150" y="100" width="20" height="20" fill="#3585BE"/>
+      <rect x="170" y="100" width="20" height="20" fill="#3992C0"/>
+      <rect x="190" y="100" width="20" height="20" fill="#3381BA"/>
+      <rect x="110" y="120" width="20" height="20" fill="#4275B2"/>
+      <rect x="130" y="120" width="20" height="20" fill="#2567A7"/>
+      <rect x="150" y="120" width="20" height="20" fill="#276CAA"/>
+      <rect x="170" y="120" width="20" height="20" fill="#3278B2"/>
+      <rect x="190" y="120" width="20" height="20" fill="#356CAF"/>
+    </g>
+    <g clip-path="url(#clip-r2-c2)">
+      <rect x="220" y="100" width="20" height="20" fill="#307FB9"/>
+      <rect x="240" y="100" width="20" height="20" fill="#295FA2"/>
+      <rect x="260" y="100" width="20" height="20" fill="#274B9A"/>
+      <rect x="280" y="100" width="20" height="20" fill="#254897"/>
+      <rect x="300" y="100" width="20" height="20" fill="#264998"/>
+      <rect x="220" y="120" width="20" height="20" fill="#2F69A9"/>
+      <rect x="240" y="120" width="20" height="20" fill="#2F529A"/>
+      <rect x="260" y="120" width="20" height="20" fill="#2B4282"/>
+      <rect x="280" y="120" width="20" height="20" fill="#2B4283"/>
+      <rect x="300" y="120" width="20" height="20" fill="#2C4586"/>
+    </g>
+    <g clip-path="url(#clip-r3-c0)">
+      <rect x="0" y="150" width="20" height="20" fill="#313C89"/>
+      <rect x="20" y="150" width="20" height="20" fill="#313D8D"/>
+      <rect x="40" y="150" width="20" height="20" fill="#2E3D8B"/>
+      <rect x="60" y="150" width="20" height="20" fill="#3A589F"/>
+      <rect x="80" y="150" width="20" height="20" fill="#4171B0"/>
+      <rect x="0" y="170" width="20" height="20" fill="#2F3174"/>
+      <rect x="20" y="170" width="20" height="20" fill="#2E3176"/>
+      <rect x="40" y="170" width="20" height="20" fill="#303078"/>
+      <rect x="60" y="170" width="20" height="20" fill="#3B428B"/>
+      <rect x="80" y="170" width="20" height="20" fill="#41589F"/>
+    </g>
+    <g clip-path="url(#clip-r3-c1)">
+      <rect x="110" y="150" width="20" height="20" fill="#2B599C"/>
+      <rect x="130" y="150" width="20" height="20" fill="#2A4781"/>
+      <rect x="150" y="150" width="20" height="20" fill="#294781"/>
+      <rect x="170" y="150" width="20" height="20" fill="#28528E"/>
+      <rect x="190" y="150" width="20" height="20" fill="#2A4D8A"/>
+      <rect x="110" y="170" width="20" height="20" fill="#31458A"/>
+      <rect x="130" y="170" width="20" height="20" fill="#26386A"/>
+      <rect x="150" y="170" width="20" height="20" fill="#283A70"/>
+      <rect x="170" y="170" width="20" height="20" fill="#2E437B"/>
+      <rect x="190" y="170" width="20" height="20" fill="#2B4071"/>
+    </g>
+    <g clip-path="url(#clip-r3-c2)">
+      <rect x="220" y="150" width="20" height="20" fill="#27437D"/>
+      <rect x="240" y="150" width="20" height="20" fill="#1F356B"/>
+      <rect x="260" y="150" width="20" height="20" fill="#1B2050"/>
+      <rect x="280" y="150" width="20" height="20" fill="#1C2151"/>
+      <rect x="300" y="150" width="20" height="20" fill="#1B2353"/>
+      <rect x="220" y="170" width="20" height="20" fill="#24346A"/>
+      <rect x="240" y="170" width="20" height="20" fill="#1C245A"/>
+      <rect x="260" y="170" width="20" height="20" fill="#141D4A"/>
+      <rect x="280" y="170" width="20" height="20" fill="#151D4C"/>
+      <rect x="300" y="170" width="20" height="20" fill="#161C49"/>
+    </g>
+  </g>
+</svg>

@@ -47,7 +47,7 @@ interface CatalogApp {
 const IMAGE_ICONS: { key: string; src: string; label: string }[] = [
   { key: 'img:streamlit', src: '/icons/streamlit.png', label: 'Streamlit' },
   { key: 'img:postgres', src: '/icons/postgres.png', label: 'PostgreSQL' },
-  { key: 'img:blueappworks', src: '/blueappworks-logo.png', label: 'Blue App Works' },
+  { key: 'img:blueappworks', src: '/icon.svg', label: 'Blue App Works' },
 ];
 
 const EMOJI_OPTIONS = [
