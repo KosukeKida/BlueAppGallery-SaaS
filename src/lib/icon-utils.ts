@@ -2,7 +2,7 @@
 const IMAGE_ICON_MAP: Record<string, string> = {
   'img:streamlit': '/icons/streamlit.png',
   'img:postgres': '/icons/postgres.png',
-  'img:blueappworks': '/icon.svg',
+  'img:blueappworks': '/icon-white.svg',
 };
 
 /**

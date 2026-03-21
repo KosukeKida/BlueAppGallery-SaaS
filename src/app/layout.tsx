@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   title: "Blue App Gallery",
   description: "Manage and launch Snowflake Native Apps",
   icons: {
-    icon: "/icon.svg",
+    icon: "/icon-white.svg",
   },
 };
 
