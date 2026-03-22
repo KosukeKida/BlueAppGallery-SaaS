@@ -285,10 +285,11 @@ export default function GalleryPage() {
     setLeases((prev) => prev.filter((l) => l.id !== leaseId));
   };
 
-  // Open SPCS endpoint URL in a new tab
+  // Open SPCS endpoint URL in a new tab (cache-busting to avoid stale responses after CP resume)
   const openEndpoint = (rawUrl: string) => {
     const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
-    window.open(url, '_blank', 'noopener');
+    const separator = url.includes('?') ? '&' : '?';
+    window.open(`${url}${separator}_cb=${Date.now()}`, '_blank', 'noopener');
   };
 
   // Card click → always show detail dialog
