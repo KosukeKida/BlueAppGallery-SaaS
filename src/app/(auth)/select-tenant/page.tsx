@@ -34,10 +34,7 @@ export default function SelectTenantPage() {
         return;
       }
 
-      const { data } = await supabase
-        .from('tenant_members')
-        .select('tenant_id, role, tenants(id, name)')
-        .eq('user_id', user.id);
+      const { data } = await supabase.rpc('list_user_tenants');
 
       if (!data || data.length === 0) {
         router.push('/login');
@@ -50,7 +47,11 @@ export default function SelectTenantPage() {
         return;
       }
 
-      setMemberships(data as unknown as TenantMembership[]);
+      setMemberships(data.map((r: { tenant_id: string; tenant_name: string; role: string }) => ({
+        tenant_id: r.tenant_id,
+        role: r.role,
+        tenants: { id: r.tenant_id, name: r.tenant_name },
+      })));
       setLoading(false);
     }
 

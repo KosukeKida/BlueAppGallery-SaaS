@@ -22,30 +22,21 @@ export default async function DashboardLayout({
   // Get active tenant from JWT app_metadata
   const activeTenantId = user.app_metadata?.active_tenant_id as string | undefined;
 
-  // Fetch all memberships for tenant switcher
-  const { data: memberships } = await supabase
-    .from('tenant_members')
-    .select('tenant_id, role')
-    .eq('user_id', user.id);
+  // Fetch all memberships via SECURITY DEFINER function (bypasses RLS)
+  const { data: tenantRows } = await supabase.rpc('list_user_tenants');
 
-  // Find the active membership (or fallback to first)
-  const activeMembership = memberships?.find(m => m.tenant_id === activeTenantId)
-    ?? memberships?.[0];
-  const role = (activeMembership?.role as 'owner' | 'admin' | 'member') ?? 'member';
-
-  // Fetch tenant names for switcher
-  const tenantIds = memberships?.map(m => m.tenant_id) ?? [];
-  const { data: tenantRows } = tenantIds.length > 0
-    ? await supabase.from('tenants').select('id, name').in('id', tenantIds)
-    : { data: [] };
-
-  const tenants = (memberships ?? []).map(m => ({
-    id: m.tenant_id,
-    name: (tenantRows ?? []).find(t => t.id === m.tenant_id)?.name ?? 'Unnamed',
-    role: m.role,
+  interface TenantRow { tenant_id: string; tenant_name: string; role: string }
+  const tenants = (tenantRows as TenantRow[] ?? []).map((r) => ({
+    id: r.tenant_id,
+    name: r.tenant_name,
+    role: r.role,
   }));
 
-  const activeTenantName = tenants.find(t => t.id === activeTenantId)?.name
+  // Find the active membership (or fallback to first)
+  const activeMembership = tenants.find((t: { id: string }) => t.id === activeTenantId) ?? tenants[0];
+  const role = (activeMembership?.role as 'owner' | 'admin' | 'member') ?? 'member';
+
+  const activeTenantName = tenants.find((t: { id: string }) => t.id === activeTenantId)?.name
     ?? tenants[0]?.name ?? '';
 
   // SaaS owner: admin/owner of the SaaS operator tenant
