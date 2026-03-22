@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -54,6 +55,15 @@ export async function DELETE() {
       },
     }
   );
+
+  // Clear active tenant before sign out so next login shows tenant selection
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const admin = createAdminClient();
+    await admin.auth.admin.updateUserById(user.id, {
+      app_metadata: { active_tenant_id: null },
+    });
+  }
 
   await supabase.auth.signOut();
   return NextResponse.json({ ok: true });

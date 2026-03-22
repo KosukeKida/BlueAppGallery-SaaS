@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { TenantSwitcher } from './tenant-switcher';
 
 type Role = 'owner' | 'admin' | 'member';
 type Visibility = Role | 'saas_owner';
@@ -41,15 +42,24 @@ const saasAdminNavItems: NavItem[] = [
   { href: '/settings/promotions', label: 'Promotions', icon: '📢', minRole: 'saas_owner' },
 ];
 
+interface TenantInfo {
+  id: string;
+  name: string;
+  role: string;
+}
+
 interface SidebarProps {
   userEmail: string;
   userRole?: Role;
   isSaasOwner?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
+  activeTenantId?: string;
+  activeTenantName?: string;
+  tenants?: TenantInfo[];
 }
 
-export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, isOpen, onClose, activeTenantId, activeTenantName, tenants }: SidebarProps) {
   const pathname = usePathname();
 
   const canAccess = (minRole: Visibility): boolean => {
@@ -84,9 +94,16 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, i
 
   const sidebarContent = (
     <>
-      <div className="p-4 border-b">
+      <div className="p-4 border-b space-y-1.5">
         <img src="/logo-gallery.svg" alt="Blue App Gallery" className="h-10 w-auto" />
-        <p className="text-xs text-muted-foreground truncate mt-1.5">{userEmail}</p>
+        {activeTenantId && activeTenantName && tenants ? (
+          <TenantSwitcher
+            activeTenantId={activeTenantId}
+            activeTenantName={activeTenantName}
+            tenants={tenants}
+          />
+        ) : null}
+        <p className="text-xs text-muted-foreground truncate px-3">{userEmail}</p>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {visibleMain.map(renderNavItem)}

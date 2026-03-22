@@ -4,11 +4,13 @@ import { createServerClient } from '@supabase/ssr';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow auth pages and static assets
+  // Allow auth pages, tenant selection, and static assets
   if (
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
-    pathname.startsWith('/api/auth')
+    pathname.startsWith('/select-tenant') ||
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/tenant/switch')
   ) {
     return NextResponse.next();
   }
@@ -44,6 +46,15 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirectTo', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Check if user has an active tenant set in JWT app_metadata
+  const activeTenantId = user.app_metadata?.active_tenant_id;
+  if (!activeTenantId && !pathname.startsWith('/api/')) {
+    // No active tenant — redirect to tenant selection
+    const url = request.nextUrl.clone();
+    url.pathname = '/select-tenant';
     return NextResponse.redirect(url);
   }
 
