@@ -32,11 +32,11 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
   const [displayName, setDisplayName] = useState(editConnection?.display_name ?? 'Default');
   const [accountIdentifier, setAccountIdentifier] = useState(editConnection?.account_identifier ?? '');
   const [accountLocator, setAccountLocator] = useState(editConnection?.account_locator ?? '');
-  const [username, setUsername] = useState(editConnection?.username ?? '');
+  const [username, setUsername] = useState(editConnection?.username ?? 'BLUE_APP_GALLERY_SVC');
   const [privateKey, setPrivateKey] = useState('');
-  const [role, setRole] = useState(editConnection?.role ?? 'gallery_saas_role');
+  const [role, setRole] = useState(editConnection?.role ?? 'BLUE_APP_GALLERY_SAAS_ROLE');
   const [database, setDatabase] = useState(editConnection?.database ?? 'BLUE_APP_GALLERY');
-  const [warehouse, setWarehouse] = useState(editConnection?.warehouse ?? '');
+  const [warehouse, setWarehouse] = useState(editConnection?.warehouse ?? 'COMPUTE_WH');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,11 +111,11 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
                 id="accountIdentifier"
                 value={accountIdentifier}
                 onChange={(e) => setAccountIdentifier(e.target.value)}
-                placeholder="orgname-accountname"
+                placeholder="ACME-PROD01"
                 required
               />
               <p className="text-xs text-muted-foreground">
-                URL format (e.g., myorg-myaccount)
+                URL format (e.g., ACME-PROD01)
               </p>
             </div>
             <div className="space-y-2">
@@ -124,7 +124,7 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
                 id="accountLocator"
                 value={accountLocator}
                 onChange={(e) => setAccountLocator(e.target.value)}
-                placeholder="e.g., AB12345"
+                placeholder="AZ19283"
                 required
               />
               <p className="text-xs text-muted-foreground">
@@ -139,7 +139,7 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="GALLERY_SVC"
+                placeholder="BLUE_APP_GALLERY_SVC"
                 required
               />
             </div>
@@ -149,7 +149,7 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="gallery_saas_role"
+                placeholder="BLUE_APP_GALLERY_SAAS_ROLE"
               />
             </div>
           </div>
@@ -181,12 +181,13 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="warehouse">Warehouse (optional)</Label>
+              <Label htmlFor="warehouse">Warehouse</Label>
               <Input
                 id="warehouse"
                 value={warehouse}
                 onChange={(e) => setWarehouse(e.target.value)}
-                placeholder="Leave empty for serverless"
+                placeholder="COMPUTE_WH"
+                required
               />
             </div>
           </div>

@@ -146,6 +146,10 @@ CREATE ROLE IF NOT EXISTS BLUE_APP_GALLERY_SAAS_ROLE
 
 -- Grant the Operator application role to this account role
 GRANT APPLICATION ROLE BLUE_APP_GALLERY.operator_saas
+  TO ROLE BLUE_APP_GALLERY_SAAS_ROLE;
+
+-- Grant warehouse usage for SQL API execution
+GRANT USAGE ON WAREHOUSE COMPUTE_WH
   TO ROLE BLUE_APP_GALLERY_SAAS_ROLE;`}</CodeBlock>
         </div>
       </div>
@@ -255,12 +259,12 @@ function SectionSaaSConnection() {
               <tr>
                 <td className="p-3 font-mono text-xs">Account Identifier</td>
                 <td className="p-3 text-muted-foreground">Org-Account format from Snowsight URL</td>
-                <td className="p-3 font-mono text-xs">MYORG-MYACCOUNT</td>
+                <td className="p-3 font-mono text-xs">ACME-PROD01</td>
               </tr>
               <tr>
                 <td className="p-3 font-mono text-xs">Account Locator</td>
                 <td className="p-3 text-muted-foreground">Result of SELECT CURRENT_ACCOUNT()</td>
-                <td className="p-3 font-mono text-xs">TC59315</td>
+                <td className="p-3 font-mono text-xs">AZ19283</td>
               </tr>
               <tr>
                 <td className="p-3 font-mono text-xs">Username</td>
@@ -284,8 +288,8 @@ function SectionSaaSConnection() {
               </tr>
               <tr>
                 <td className="p-3 font-mono text-xs">Warehouse</td>
-                <td className="p-3 text-muted-foreground">Leave empty (serverless)</td>
-                <td className="p-3 font-mono text-xs">(empty)</td>
+                <td className="p-3 text-muted-foreground">Warehouse for SQL API execution</td>
+                <td className="p-3 font-mono text-xs">COMPUTE_WH</td>
               </tr>
             </tbody>
           </table>

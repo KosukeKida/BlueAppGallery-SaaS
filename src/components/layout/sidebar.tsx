@@ -19,6 +19,7 @@ interface NavItem {
   label: string;
   icon: string;
   minRole: Visibility;
+  newTab?: boolean;
 }
 
 const mainNavItems: NavItem[] = [
@@ -35,7 +36,7 @@ const settingsNavItems: NavItem[] = [
   { href: '/settings/connections', label: 'Connections', icon: '🔌', minRole: 'owner' },
   { href: '/settings/members', label: 'Members', icon: '👥', minRole: 'owner' },
   { href: '/settings/audit-log', label: 'Audit Log', icon: '📜', minRole: 'owner' },
-  { href: '/setup-guide', label: 'Setup Guide', icon: '🔧', minRole: 'owner' },
+  { href: '/setup-guide', label: 'Setup Guide', icon: '🔧', minRole: 'owner', newTab: true },
 ];
 
 const saasAdminNavItems: NavItem[] = [
@@ -75,6 +76,7 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, i
         key={item.href}
         href={item.href}
         onClick={onClose}
+        {...(item.newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         className={cn(
           'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
           isActive
@@ -84,6 +86,7 @@ export function Sidebar({ userEmail, userRole = 'member', isSaasOwner = false, i
       >
         <span className="text-base">{item.icon}</span>
         {item.label}
+        {item.newTab && <span className="text-xs text-muted-foreground ml-auto">↗</span>}
       </Link>
     );
   };

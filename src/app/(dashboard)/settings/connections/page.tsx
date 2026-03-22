@@ -127,6 +127,10 @@ export default function ConnectionsPage() {
           <h2 className="text-2xl font-bold">Snowflake Connections</h2>
           <p className="text-sm text-muted-foreground">
             Configure connections to Snowflake accounts with App Gallery Operator installed.
+            {' '}
+            <a href="/setup-guide" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              Setup Guide ↗
+            </a>
           </p>
         </div>
         {!showForm && !editingConnection && (
