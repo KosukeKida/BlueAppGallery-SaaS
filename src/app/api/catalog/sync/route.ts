@@ -60,7 +60,12 @@ export async function POST() {
 
       // Snowflake catalog value > existing Supabase value
       // Live endpoint resolution happens at launch/open time, not during sync
-      const endpointUrl = app.endpoint_url || existing?.endpoint_url || null;
+      // Filter out non-URL strings (e.g., "Endpoints provisioning in progress...")
+      const isValidUrl = (url: string | null | undefined): boolean =>
+        !!url && /^https?:\/\//i.test(url);
+      const snowflakeUrl = isValidUrl(app.endpoint_url) ? app.endpoint_url : null;
+      const existingUrl = isValidUrl(existing?.endpoint_url) ? existing?.endpoint_url : null;
+      const endpointUrl = snowflakeUrl || existingUrl || null;
 
       // Filter out default Snowflake CLI comment
       const appComment = (app.app_comment ?? '').toUpperCase() === 'GENERATED_BY_SNOWFLAKECLI'

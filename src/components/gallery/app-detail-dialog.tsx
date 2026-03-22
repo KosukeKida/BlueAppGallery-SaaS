@@ -249,8 +249,8 @@ export function AppDetailDialog({
             </div>
           )}
 
-          {/* Endpoint (when running) */}
-          {effectiveRunning && app.endpoint_url && (
+          {/* Endpoint (when running, only show valid URLs) */}
+          {effectiveRunning && app.endpoint_url && /^https?:\/\//i.test(app.endpoint_url) && (
             <div>
               <h4 className="text-sm font-medium mb-1">Endpoint</h4>
               <div className="flex items-center gap-2">
