@@ -196,6 +196,15 @@ SaaS Gallery と**同等のカード型 UI** を Streamlit で実装する。
 - **Gallery での扱い**: `app_type = 'streamlit_wh'` のフラグにより起動停止操作をスキップし、
   カード上は Open ボタンで `endpoint_url` に直リンクするだけ
 
+#### Notebook（対象外）
+
+Snowflake Notebook（`notebook_cp`）は Blue App Gallery の管理対象外とする。
+
+- **理由**: Notebook は Snowflake 標準で個別の auto-stop 設定（Idle Timeout）を持っており、
+  外部からのライフサイクル管理が不要
+- **Operator Dashboard**: 「Discover Notebooks」ボタンは削除。Notebook を発見・登録するフローは提供しない
+- **Gallery SaaS**: Notebook は `app_catalog` に登録されないため、Gallery に表示されない
+
 ### 2.8 Postgres Instance 制御
 
 Snowflake Managed Postgres Instance を使用するアプリに対して、Operator が起動/停止を制御する。
