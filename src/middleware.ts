@@ -4,11 +4,13 @@ import { createServerClient } from '@supabase/ssr';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow auth pages, tenant selection, and static assets
+  // Allow auth pages, tenant selection, public docs, and static assets
   if (
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/select-tenant') ||
+    pathname.startsWith('/setup-guide') ||
+    pathname.startsWith('/user-guide') ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/api/tenant/switch')
   ) {

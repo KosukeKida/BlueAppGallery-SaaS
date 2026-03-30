@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 type Section = 'overview' | 'snowflake-setup' | 'saas-connection' | 'sync-launch';
 
@@ -469,8 +470,18 @@ export default function SetupGuidePage() {
       </div>
 
       {/* Section content */}
-      <div className="pb-12">
+      <div className="pb-8">
         {renderSection()}
+      </div>
+
+      {/* Link to User Guide */}
+      <div className="border-t pt-6 pb-12">
+        <p className="text-sm text-muted-foreground">
+          Setup complete? Learn how to use the Gallery in the{' '}
+          <Link href="/user-guide" className="text-primary hover:underline font-medium">
+            User Guide →
+          </Link>
+        </p>
       </div>
     </div>
   );

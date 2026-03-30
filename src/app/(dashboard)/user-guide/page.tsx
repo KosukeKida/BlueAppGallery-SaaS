@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function UserGuidePage() {
@@ -9,6 +10,12 @@ export default function UserGuidePage() {
         <h2 className="text-2xl font-bold">User Guide</h2>
         <p className="text-sm text-muted-foreground">
           How to use App Gallery — launching apps, managing leases, and more.
+        </p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Need to set up the connection first?{' '}
+          <Link href="/setup-guide" className="text-primary hover:underline font-medium">
+            ← Setup Guide
+          </Link>
         </p>
       </div>
 
