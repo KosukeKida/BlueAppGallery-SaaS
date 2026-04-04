@@ -33,14 +33,14 @@ Gallery（SaaS）と Operator（Native App）を責務分離し、**独立した
 
 | スキーマ | 用途 | アクセス |
 |----------|------|----------|
-| `api` | Gallery 向け公開 API | `operator_saas` ロール |
+| `api` | Gallery 向け公開 API | `operator_api` ロール |
 | `config` | Streamlit UI 向け管理操作 | `operator_admin` ロール |
 | `core` | 内部実装（テーブル・内部プロシージャ） | プロシージャ経由のみ |
 
 ### 2.2 APPLICATION ROLE
 
 ```sql
-CREATE APPLICATION ROLE operator_saas;   -- Gallery SaaS 接続ユーザー用
+CREATE APPLICATION ROLE operator_api;   -- Gallery SaaS 接続ユーザー用
 CREATE APPLICATION ROLE operator_admin;  -- Streamlit UI / 管理者用
 CREATE APPLICATION ROLE operator_user;   -- 読み取り専用（利用組織の判断で付与）
 ```
@@ -497,7 +497,7 @@ async getOperatorVersion() {
 
 ### Phase 1: API スキーマ追加 + Dashboard 拡張（Operator）
 
-- [ ] `api` スキーマ新設 + `operator_saas` ロール
+- [ ] `api` スキーマ新設 + `operator_api` ロール
 - [ ] `api.launch()` / `api.extend()` / `api.stop()` 実装（内部で core.* を呼び出す）
 - [ ] `api.get_status()` / `api.list_apps()` / `api.get_endpoints()` / `api.get_version()` 実装
 - [ ] `api.extend()` のレースコンディション修正（UPDATE を先、RESUME を後）
@@ -522,7 +522,7 @@ async getOperatorVersion() {
 
 ### Phase 4: 後方互換削除（Operator v2.0）
 
-- [ ] `core.*` の直接呼び出しを `operator_saas` ロールから REVOKE
+- [ ] `core.*` の直接呼び出しを `operator_api` ロールから REVOKE
 - [ ] `api` スキーマのみが公開 API
 
 ---

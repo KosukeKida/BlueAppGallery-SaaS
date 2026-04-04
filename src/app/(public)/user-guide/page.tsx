@@ -91,6 +91,12 @@ export default function UserGuidePage() {
               When a lease expires, the system automatically suspends compute resources. You will
               receive toast notifications at 5 minutes and 1 minute before expiry.
             </p>
+            <div className="bg-muted rounded-lg p-3 text-xs">
+              <span className="font-semibold">Note:</span> The automatic stop is handled by a background
+              task (Watchdog) that runs every 5 minutes. This means the app may continue running for
+              up to 5 minutes after the lease expires. For immediate stop, use the{' '}
+              <span className="font-medium">Stop</span> button.
+            </div>
             <h4 className="font-semibold">Countdown Timer</h4>
             <p>
               The management panel shows a real-time countdown of remaining lease time,
