@@ -34,7 +34,7 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
   const [accountLocator, setAccountLocator] = useState(editConnection?.account_locator ?? '');
   const [username, setUsername] = useState(editConnection?.username ?? 'BLUE_APP_GALLERY_SVC');
   const [privateKey, setPrivateKey] = useState('');
-  const [role, setRole] = useState(editConnection?.role ?? 'BLUE_APP_GALLERY_SAAS_ROLE');
+  const [role, setRole] = useState(editConnection?.role ?? 'BLUE_APP_GALLERY_API_ROLE');
   const [database, setDatabase] = useState(editConnection?.database ?? 'BLUE_APP_GALLERY');
   const [warehouse, setWarehouse] = useState(editConnection?.warehouse ?? 'COMPUTE_WH');
 
@@ -149,7 +149,7 @@ export function ConnectionForm({ onSuccess, onCancel, editConnection }: Connecti
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="BLUE_APP_GALLERY_SAAS_ROLE"
+                placeholder="BLUE_APP_GALLERY_API_ROLE"
               />
             </div>
           </div>

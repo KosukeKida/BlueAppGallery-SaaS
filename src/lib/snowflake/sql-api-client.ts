@@ -41,7 +41,7 @@ export class SnowflakeSqlApiClient {
       username: config.username,
       privateKeyPem: config.privateKeyPem,
       database: config.database ?? 'BLUE_APP_GALLERY',
-      role: config.role ?? 'operator_saas',
+      role: config.role ?? 'BLUE_APP_GALLERY_API_ROLE',
       warehouse: config.warehouse ?? null,
     };
   }
