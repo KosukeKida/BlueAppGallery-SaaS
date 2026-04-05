@@ -111,11 +111,10 @@ export default function LeasesPage() {
 
   const handleExtend = async (lease: Lease) => {
     try {
-      const res = await fetch('/api/leases', {
+      const res = await fetch(`/api/leases/${lease.id}/extend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          computePool: lease.compute_pool,
           durationMinutes: 60,
         }),
       });

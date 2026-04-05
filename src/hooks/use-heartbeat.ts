@@ -21,8 +21,9 @@ export function useHeartbeat({ leaseId, sessionId, enabled = true }: UseHeartbea
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leaseId, sessionId }),
       });
-    } catch {
-      // Silently fail — heartbeat is best-effort
+    } catch (error) {
+      // Best-effort, but log for debugging
+      console.debug('[Heartbeat] Failed:', error);
     }
   }, [leaseId, sessionId]);
 

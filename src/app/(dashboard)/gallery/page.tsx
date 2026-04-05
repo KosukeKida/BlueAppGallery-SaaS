@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AppCard, type AppCatalogItem } from '@/components/gallery/app-card';
 import { PromotionCard, type PromotionCardData } from '@/components/gallery/promotion-card';
@@ -135,13 +135,22 @@ export default function GalleryPage() {
     fetchData();
   }, [fetchData]);
 
+  // Track leases for polling optimization (avoid re-creating interval on state change)
+  const leasesRef = useRef(leases);
+  useEffect(() => {
+    leasesRef.current = leases;
+  }, [leases]);
+
   // Fast poll every 10s (Supabase-only) for near-real-time card updates
   // Full Snowflake sync every 60s to detect watchdog-expired leases
+  // Optimization: skip Snowflake sync if no active leases (cost reduction)
   useEffect(() => {
     let tick = 0;
     const poll = async () => {
       tick++;
-      const useQuick = tick % 6 !== 0;
+      // Skip expensive Snowflake API call if no active leases
+      const hasActiveLeases = leasesRef.current.length > 0;
+      const useQuick = !hasActiveLeases || tick % 6 !== 0;
       try {
         const res = await fetch(`/api/leases${useQuick ? '?quick=true' : ''}`);
         if (res.ok) {

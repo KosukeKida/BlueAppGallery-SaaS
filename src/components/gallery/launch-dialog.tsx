@@ -300,8 +300,7 @@ export function LaunchDialog({ open, onOpenChange, app, onSuccess }: LaunchDialo
   }, [durationStr, app, appName, onSuccess, pollEndpoint, hasService, knownEndpointUrl, cleanupPolling]);
 
   const handleBackToGallery = () => {
-    // Don't cleanup polling — keep it running in background
-    abortRef.current = false;
+    // Polling will be cleaned up by useEffect when dialog closes
     onOpenChange(false);
   };
 
