@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/select-tenant') ||
     pathname.startsWith('/setup-guide') ||
     pathname.startsWith('/user-guide') ||
+    pathname.startsWith('/native-app-guide') ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/api/tenant/switch')
   ) {
