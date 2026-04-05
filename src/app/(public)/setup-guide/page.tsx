@@ -257,11 +257,13 @@ CALL BLUE_APP_GALLERY.api.list_apps();`}</CodeBlock>
           You will need these values when configuring the connection in the Gallery SaaS.
         </p>
         <div className="ml-9">
-          <CodeBlock>{`-- Account Identifier (org-account format, e.g., MYORG-MYACCOUNT)
--- Found in the Snowsight URL: https://app.snowflake.com/MYORG/MYACCOUNT/
+          <CodeBlock>{`-- Account Identifier (org-account format)
+-- Found in the Snowsight URL: https://app.snowflake.com/<ORG>/<ACCOUNT>/
+-- Example: ACME-PROD01
 
--- Account Locator (e.g., TC59315)
-SELECT CURRENT_ACCOUNT();`}</CodeBlock>
+-- Account Locator (alphanumeric identifier)
+SELECT CURRENT_ACCOUNT();
+-- Example result: XY12345`}</CodeBlock>
         </div>
       </div>
     </div>

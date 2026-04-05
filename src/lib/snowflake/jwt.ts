@@ -9,8 +9,8 @@ import { createHash, createPublicKey } from 'crypto';
  * - sub: <ACCOUNT_LOCATOR>.<USER>
  * - iat/exp: current time, 60 second lifetime
  *
- * IMPORTANT: JWT claims must use the account locator (e.g. TC59315),
- * NOT the org-account format (e.g. EXTURE-PRACTICE).
+ * IMPORTANT: JWT claims must use the account locator (e.g. XY12345),
+ * NOT the org-account format (e.g. MYORG-MYACCOUNT).
  */
 export async function generateSnowflakeJwt(params: {
   accountIdentifier: string;
