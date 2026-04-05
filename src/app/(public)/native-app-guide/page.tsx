@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 type Tab = 'installation' | 'developers' | 'troubleshooting';
 
@@ -41,7 +41,7 @@ function Divider() {
 // =============================================================================
 // Installation Tab
 // =============================================================================
-function TabInstallation() {
+function TabInstallation({ onNavigateToGalleryCompatible }: { onNavigateToGalleryCompatible: () => void }) {
   return (
     <div className="space-y-6">
       {/* Overview */}
@@ -49,7 +49,17 @@ function TabInstallation() {
         <h2 className="text-2xl font-bold mb-4">What is Blue App Gallery?</h2>
         <p className="text-muted-foreground leading-relaxed mb-4">
           Blue App Gallery is a free Snowflake Native App that manages the compute lifecycle of your
-          Snowflake applications. It provides centralized start/stop control, automatic shutdown via
+          Snowflake applications. It is designed for{' '}
+          <button
+            onClick={onNavigateToGalleryCompatible}
+            className="text-primary hover:underline font-medium"
+          >
+            Gallery Compatible
+          </button>
+          {' '}apps — Native Apps and Streamlit apps that implement specific lifecycle procedures.
+        </p>
+        <p className="text-muted-foreground leading-relaxed mb-4">
+          Blue App Gallery provides centralized start/stop control, automatic shutdown via
           configurable timeouts (leases), and a built-in dashboard for monitoring.
         </p>
         <p className="text-muted-foreground leading-relaxed">
@@ -302,11 +312,11 @@ GRANT EXECUTE MANAGED TASK ON ACCOUNT TO APPLICATION BLUE_APP_GALLERY;`}</CodeBl
 // =============================================================================
 // For Developers Tab
 // =============================================================================
-function TabDevelopers() {
+function TabDevelopers({ galleryCompatibleRef }: { galleryCompatibleRef: React.RefObject<HTMLDivElement | null> }) {
   return (
     <div className="space-y-6">
       {/* Gallery Compatible Apps */}
-      <div>
+      <div ref={galleryCompatibleRef}>
         <h2 className="text-2xl font-bold mb-4">Gallery Compatible Apps</h2>
         <p className="text-muted-foreground mb-4">
           Gallery Compatible apps implement specific procedures that allow Blue App Gallery
@@ -744,11 +754,20 @@ GRANT APPLICATION ROLE <YOUR_APP>.APP_ADMIN
 // =============================================================================
 export default function NativeAppGuidePage() {
   const [activeTab, setActiveTab] = useState<Tab>('installation');
+  const galleryCompatibleRef = useRef<HTMLDivElement>(null);
+
+  const handleNavigateToGalleryCompatible = () => {
+    setActiveTab('developers');
+    // Wait for tab to render, then scroll
+    setTimeout(() => {
+      galleryCompatibleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
 
   const renderTab = () => {
     switch (activeTab) {
-      case 'installation': return <TabInstallation />;
-      case 'developers': return <TabDevelopers />;
+      case 'installation': return <TabInstallation onNavigateToGalleryCompatible={handleNavigateToGalleryCompatible} />;
+      case 'developers': return <TabDevelopers galleryCompatibleRef={galleryCompatibleRef} />;
       case 'troubleshooting': return <TabTroubleshooting />;
     }
   };
