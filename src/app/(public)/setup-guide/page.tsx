@@ -99,9 +99,16 @@ function SectionSnowflakeSetup() {
       <div>
         <h2 className="text-2xl font-bold mb-4">Snowflake Setup</h2>
         <p className="text-muted-foreground mb-6">
-          Create a dedicated user and role that the Gallery SaaS will use to communicate with your Snowflake account.
-          This user should only have access to the Gallery Operator API — nothing else.
+          Create a dedicated user and role for the Gallery SaaS to communicate with your Snowflake account.
+          This user will only have access to the Gallery Operator API.
         </p>
+        <div className="border rounded-lg p-4 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+          <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-1">Prerequisite</h4>
+          <p className="text-sm text-amber-700 dark:text-amber-300">
+            You must have already run the <strong>Setup Notebook</strong> in the Operator Dashboard.
+            This creates the App Registry database and Discovery procedure that the Operator needs.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -131,46 +138,6 @@ openssl rsa -in gallery_key.p8 -pubout -out gallery_key.pub`}</CodeBlock>
       <div className="space-y-3">
         <h3 className="text-lg font-semibold flex items-center">
           <StepNumber n="2" />
-          Create App Registry
-        </h3>
-        <p className="text-sm text-muted-foreground ml-9">
-          The App Registry is a shared database that allows Gallery Compatible apps to detect
-          the Operator automatically. This is a one-time setup per Snowflake account.
-        </p>
-        <div className="ml-9">
-          <CodeBlock>{`USE ROLE ACCOUNTADMIN;
-
--- Create the registry database
-CREATE DATABASE IF NOT EXISTS BLUE_APP_GALLERY_REGISTRY;
-CREATE SCHEMA IF NOT EXISTS BLUE_APP_GALLERY_REGISTRY.PUBLIC;
-CREATE TABLE IF NOT EXISTS BLUE_APP_GALLERY_REGISTRY.PUBLIC.OPERATOR (
-    app_name VARCHAR DEFAULT 'BLUE_APP_GALLERY'
-);
-INSERT INTO BLUE_APP_GALLERY_REGISTRY.PUBLIC.OPERATOR (app_name)
-    VALUES ('BLUE_APP_GALLERY');
-
--- Grant access to the Operator
-GRANT USAGE ON DATABASE BLUE_APP_GALLERY_REGISTRY
-    TO APPLICATION BLUE_APP_GALLERY;
-GRANT USAGE ON SCHEMA BLUE_APP_GALLERY_REGISTRY.PUBLIC
-    TO APPLICATION BLUE_APP_GALLERY;
-GRANT SELECT ON TABLE BLUE_APP_GALLERY_REGISTRY.PUBLIC.OPERATOR
-    TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
-        </div>
-        <div className="ml-9 border rounded-lg p-3 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            <strong>Note:</strong> Each Gallery Compatible app also needs access to this registry.
-            When you register a new app in the Operator, grant it access with:
-            <code className="text-xs bg-blue-100 dark:bg-blue-900 px-1 rounded ml-1">
-              GRANT USAGE ON DATABASE BLUE_APP_GALLERY_REGISTRY TO APPLICATION &lt;APP_NAME&gt;;
-            </code>
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold flex items-center">
-          <StepNumber n="3" />
           Create Account Role
         </h3>
         <p className="text-sm text-muted-foreground ml-9">
@@ -182,7 +149,7 @@ GRANT SELECT ON TABLE BLUE_APP_GALLERY_REGISTRY.PUBLIC.OPERATOR
 
 -- Create dedicated role for Gallery API
 CREATE ROLE IF NOT EXISTS BLUE_APP_GALLERY_API_ROLE
-  COMMENT = 'Role for App Gallery to access Operator API';
+  COMMENT = 'Role for App Gallery SaaS to access Operator API';
 
 -- Grant the Operator application role to this account role
 GRANT APPLICATION ROLE BLUE_APP_GALLERY.operator_api
@@ -196,15 +163,14 @@ GRANT USAGE ON WAREHOUSE COMPUTE_WH
 
       <div className="space-y-3">
         <h3 className="text-lg font-semibold flex items-center">
-          <StepNumber n="4" />
+          <StepNumber n="3" />
           Create Dedicated User
         </h3>
         <p className="text-sm text-muted-foreground ml-9">
           Create a service user that authenticates via keypair only. This user cannot log in interactively.
         </p>
         <div className="ml-9">
-          <CodeBlock>{`-- Run as ACCOUNTADMIN
-USE ROLE ACCOUNTADMIN;
+          <CodeBlock>{`USE ROLE ACCOUNTADMIN;
 
 -- Read your public key (remove header/footer/newlines)
 -- Example: MIIBIjANBgkqhk...
@@ -213,7 +179,7 @@ CREATE USER IF NOT EXISTS BLUE_APP_GALLERY_SVC
   TYPE = SERVICE
   DEFAULT_ROLE = BLUE_APP_GALLERY_API_ROLE
   RSA_PUBLIC_KEY = '<paste public key content here>'
-  COMMENT = 'Service user for App Gallery';
+  COMMENT = 'Service user for App Gallery SaaS';
 
 -- Grant the role to the user
 GRANT ROLE BLUE_APP_GALLERY_API_ROLE TO USER BLUE_APP_GALLERY_SVC;`}</CodeBlock>
@@ -230,14 +196,14 @@ GRANT ROLE BLUE_APP_GALLERY_API_ROLE TO USER BLUE_APP_GALLERY_SVC;`}</CodeBlock>
 
       <div className="space-y-3">
         <h3 className="text-lg font-semibold flex items-center">
-          <StepNumber n="5" />
+          <StepNumber n="4" />
           Verify Setup
         </h3>
         <p className="text-sm text-muted-foreground ml-9">
-          Test that the user can call the Operator API.
+          Test that the role can call the Operator API.
         </p>
         <div className="ml-9">
-          <CodeBlock>{`-- Switch to the new role and user context
+          <CodeBlock>{`-- Switch to the new role
 USE ROLE BLUE_APP_GALLERY_API_ROLE;
 
 -- This should return the Operator version
@@ -250,7 +216,7 @@ CALL BLUE_APP_GALLERY.api.list_apps();`}</CodeBlock>
 
       <div className="space-y-3">
         <h3 className="text-lg font-semibold flex items-center">
-          <StepNumber n="6" />
+          <StepNumber n="5" />
           Find Your Account Identifiers
         </h3>
         <p className="text-sm text-muted-foreground ml-9">
