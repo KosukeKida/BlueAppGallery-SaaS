@@ -2,26 +2,15 @@
 
 import { useState } from 'react';
 
-type Section =
-  | 'overview'
-  | 'installation'
-  | 'managing-apps'
-  | 'api-reference'
-  | 'gallery-compatible'
-  | 'watchdog'
-  | 'troubleshooting';
+type Tab = 'installation' | 'developers' | 'troubleshooting';
 
-const sections: { id: Section; label: string; icon: string }[] = [
-  { id: 'overview', label: 'Overview', icon: '1' },
-  { id: 'installation', label: 'Installation', icon: '2' },
-  { id: 'managing-apps', label: 'Managing Apps', icon: '3' },
-  { id: 'api-reference', label: 'API Reference', icon: '4' },
-  { id: 'gallery-compatible', label: 'Gallery Compatible', icon: '5' },
-  { id: 'watchdog', label: 'Watchdog', icon: '6' },
-  { id: 'troubleshooting', label: 'Troubleshooting', icon: '7' },
+const tabs: { id: Tab; label: string; icon: string }[] = [
+  { id: 'installation', label: 'Installation', icon: '📦' },
+  { id: 'developers', label: 'For Developers', icon: '🛠️' },
+  { id: 'troubleshooting', label: 'Troubleshooting', icon: '🔧' },
 ];
 
-function CodeBlock({ children, language = 'sql' }: { children: string; language?: string }) {
+function CodeBlock({ children }: { children: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -45,9 +34,17 @@ function CodeBlock({ children, language = 'sql' }: { children: string; language?
   );
 }
 
-function SectionOverview() {
+function Divider() {
+  return <hr className="my-10 border-border" />;
+}
+
+// =============================================================================
+// Installation Tab
+// =============================================================================
+function TabInstallation() {
   return (
     <div className="space-y-6">
+      {/* Overview */}
       <div>
         <h2 className="text-2xl font-bold mb-4">What is Blue App Gallery?</h2>
         <p className="text-muted-foreground leading-relaxed mb-4">
@@ -116,13 +113,10 @@ function SectionOverview() {
           </table>
         </div>
       </div>
-    </div>
-  );
-}
 
-function SectionInstallation() {
-  return (
-    <div className="space-y-6">
+      <Divider />
+
+      {/* Installation Steps */}
       <div>
         <h2 className="text-2xl font-bold mb-4">Installation</h2>
         <p className="text-muted-foreground mb-6">
@@ -185,24 +179,9 @@ GRANT USAGE ON PROCEDURE BLUE_APP_GALLERY_REGISTRY.PUBLIC.DISCOVER_APPS()
         </ol>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Step 4: Enable Watchdog (Recommended)</h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          The Watchdog automatically stops expired leases. Grant the required privilege and enable it:
-        </p>
-        <CodeBlock>{`USE ROLE ACCOUNTADMIN;
-GRANT EXECUTE MANAGED TASK ON ACCOUNT TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
-        <p className="text-sm text-muted-foreground">
-          Then go to the <strong>Operator</strong> page and click <strong>Enable Watchdog</strong>.
-        </p>
-      </div>
-    </div>
-  );
-}
+      <Divider />
 
-function SectionManagingApps() {
-  return (
-    <div className="space-y-6">
+      {/* Managing Apps */}
       <div>
         <h2 className="text-2xl font-bold mb-4">Managing Apps</h2>
         <p className="text-muted-foreground mb-6">
@@ -242,14 +221,6 @@ function SectionManagingApps() {
           <code className="text-xs bg-muted px-1 rounded mx-1">streamlit_cp</code>, and
           <code className="text-xs bg-muted px-1 rounded mx-1">streamlit_wh</code>.
         </p>
-        <p className="text-sm text-muted-foreground mt-2">
-          This controls how the Operator handles start/stop:
-        </p>
-        <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 mt-2">
-          <li><strong>native_app</strong>: Resumes CP + calls resume_service() if Gallery Compatible</li>
-          <li><strong>streamlit_cp</strong>: Resumes CP only (no service call)</li>
-          <li><strong>streamlit_wh</strong>: No lifecycle management (always available)</li>
-        </ul>
       </div>
 
       <div className="space-y-4">
@@ -268,352 +239,73 @@ GRANT OPERATE ON POSTGRES INSTANCE <instance_name> TO APPLICATION BLUE_APP_GALLE
 GRANT APPLICATION ROLE <APP_NAME>.APP_ADMIN TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Removing an App</h3>
-        <p className="text-sm text-muted-foreground">
-          Click <strong>Remove</strong> in the Operator page to unregister an app. This only removes it
-          from Operator management — the underlying Native App is not deleted.
-        </p>
-      </div>
-    </div>
-  );
-}
+      <Divider />
 
-function SectionApiReference() {
-  return (
-    <div className="space-y-6">
+      {/* Watchdog */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">API Reference</h2>
+        <h2 className="text-2xl font-bold mb-4">Watchdog Task</h2>
         <p className="text-muted-foreground mb-4">
-          Blue App Gallery exposes a public API via the <code className="text-xs bg-muted px-1 rounded">api</code> schema.
-          These procedures can be called by any user/role granted the <code className="text-xs bg-muted px-1 rounded">operator_api</code> application role.
+          The Watchdog is a background task that automatically manages resource lifecycle.
         </p>
-        <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            <strong>Access Setup:</strong> Create a dedicated role and user for API access, then grant:
-          </p>
-          <CodeBlock>{`GRANT APPLICATION ROLE BLUE_APP_GALLERY.operator_api
-    TO ROLE <YOUR_API_ROLE>;`}</CodeBlock>
-        </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Response Format</h3>
+        <h3 className="text-lg font-semibold">What It Does</h3>
+        <ul className="text-sm text-muted-foreground space-y-2">
+          <li>
+            <strong>Lease Expiration:</strong> Every 5 minutes, checks for expired leases and suspends
+            the associated Compute Pools (and Postgres Instances if configured).
+          </li>
+          <li>
+            <strong>Leaseless Detection:</strong> For <code className="text-xs bg-muted px-1 rounded">streamlit_cp</code> apps,
+            detects when a Compute Pool is running without an active lease and auto-stops it after a 1-hour grace period.
+          </li>
+        </ul>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Enabling the Watchdog</h3>
         <p className="text-sm text-muted-foreground mb-3">
-          All API procedures return a VARIANT with a consistent structure:
+          <strong>Step 1:</strong> Grant the required privilege:
         </p>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Success Response</p>
-            <CodeBlock language="json">{`{
-  "api_version": "1.0",
-  "status": "OK",
-  "data": { ... }
-}`}</CodeBlock>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Error Response</p>
-            <CodeBlock language="json">{`{
-  "api_version": "1.0",
-  "status": "ERROR",
-  "error": {
-    "code": "LEASE_NOT_FOUND",
-    "message": "..."
-  }
-}`}</CodeBlock>
-          </div>
-        </div>
-      </div>
-
-      {/* api.get_version */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.get_version()</h3>
+        <CodeBlock>{`USE ROLE ACCOUNTADMIN;
+GRANT EXECUTE MANAGED TASK ON ACCOUNT TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
         <p className="text-sm text-muted-foreground">
-          Returns the Operator version and API compatibility information.
+          <strong>Step 2:</strong> Go to the <strong>Operator</strong> page and click <strong>Enable Watchdog</strong>.
         </p>
-        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.get_version();`}</CodeBlock>
-        <p className="text-xs text-muted-foreground">Response includes:</p>
-        <ul className="text-xs text-muted-foreground list-disc list-inside">
-          <li><code>operator_version</code> — Operator version (e.g., &quot;1.2.0&quot;)</li>
-          <li><code>api_version</code> — API version (e.g., &quot;1.0&quot;)</li>
-          <li><code>min_compatible_api</code> — Minimum compatible API version</li>
-        </ul>
       </div>
 
-      {/* api.launch */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.launch(app_name, duration_minutes, user_name)</h3>
-        <p className="text-sm text-muted-foreground">
-          Starts an app by resuming its Compute Pool and (for Gallery Compatible apps) calling resume_service().
-          Creates a lease that automatically expires after the specified duration.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="pr-4 py-2">Parameter</th>
-                <th className="pr-4 py-2">Type</th>
-                <th className="pr-4 py-2">Default</th>
-                <th className="py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr className="border-b">
-                <td className="pr-4 py-2 font-mono text-xs">app_name</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="pr-4 py-2">—</td>
-                <td className="py-2">Name of the managed app</td>
-              </tr>
-              <tr className="border-b">
-                <td className="pr-4 py-2 font-mono text-xs">duration_minutes</td>
-                <td className="pr-4 py-2">INTEGER</td>
-                <td className="pr-4 py-2">60</td>
-                <td className="py-2">Lease duration in minutes</td>
-              </tr>
-              <tr>
-                <td className="pr-4 py-2 font-mono text-xs">user_name</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="pr-4 py-2">NULL</td>
-                <td className="py-2">Identifier for audit logging</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <CodeBlock>{`-- Start app with 60-minute lease
-CALL BLUE_APP_GALLERY.api.launch('MY_APP', 60, 'john.doe@example.com');`}</CodeBlock>
-        <p className="text-xs text-muted-foreground">Returns: <code>lease_id</code>, <code>lease_expires_at</code>, <code>endpoint_url</code></p>
-      </div>
-
-      {/* api.extend */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.extend(lease_id, duration_minutes, user_name)</h3>
-        <p className="text-sm text-muted-foreground">
-          Extends an existing lease by the specified duration. Also ensures resources are resumed
-          (handles race conditions with Watchdog).
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="pr-4 py-2">Parameter</th>
-                <th className="pr-4 py-2">Type</th>
-                <th className="pr-4 py-2">Default</th>
-                <th className="py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr className="border-b">
-                <td className="pr-4 py-2 font-mono text-xs">lease_id</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="pr-4 py-2">—</td>
-                <td className="py-2">UUID of the lease to extend</td>
-              </tr>
-              <tr className="border-b">
-                <td className="pr-4 py-2 font-mono text-xs">duration_minutes</td>
-                <td className="pr-4 py-2">INTEGER</td>
-                <td className="pr-4 py-2">60</td>
-                <td className="py-2">Additional duration in minutes</td>
-              </tr>
-              <tr>
-                <td className="pr-4 py-2 font-mono text-xs">user_name</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="pr-4 py-2">NULL</td>
-                <td className="py-2">Identifier for audit logging</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <CodeBlock>{`-- Extend lease by 30 minutes
-CALL BLUE_APP_GALLERY.api.extend('abc12345-...', 30, 'john.doe@example.com');`}</CodeBlock>
-      </div>
-
-      {/* api.stop */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.stop(lease_id)</h3>
-        <p className="text-sm text-muted-foreground">
-          Stops a lease immediately. Suspends the Compute Pool (which implicitly stops services).
-          If other active leases exist for the same app, the Compute Pool remains running.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="pr-4 py-2">Parameter</th>
-                <th className="pr-4 py-2">Type</th>
-                <th className="py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr>
-                <td className="pr-4 py-2 font-mono text-xs">lease_id</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="py-2">UUID of the lease to stop</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.stop('abc12345-...');`}</CodeBlock>
-      </div>
-
-      {/* api.get_status */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.get_status(app_name)</h3>
-        <p className="text-sm text-muted-foreground">
-          Returns the status of a specific app or all apps with active leases.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="pr-4 py-2">Parameter</th>
-                <th className="pr-4 py-2">Type</th>
-                <th className="pr-4 py-2">Default</th>
-                <th className="py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr>
-                <td className="pr-4 py-2 font-mono text-xs">app_name</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="pr-4 py-2">NULL</td>
-                <td className="py-2">Specific app, or NULL for all</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <CodeBlock>{`-- Get status for all apps
-CALL BLUE_APP_GALLERY.api.get_status();
-
--- Get status for specific app
-CALL BLUE_APP_GALLERY.api.get_status('MY_APP');`}</CodeBlock>
-      </div>
-
-      {/* api.list_apps */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.list_apps()</h3>
-        <p className="text-sm text-muted-foreground">
-          Returns all managed apps with their catalog information.
-        </p>
-        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.list_apps();`}</CodeBlock>
-        <p className="text-xs text-muted-foreground">Response includes for each app:</p>
-        <ul className="text-xs text-muted-foreground list-disc list-inside">
-          <li><code>app_name</code>, <code>app_type</code>, <code>app_version</code></li>
-          <li><code>compute_pool</code>, <code>service_name</code></li>
-          <li><code>endpoint_url</code>, <code>gallery_compatible</code></li>
-          <li><code>postgres_instance</code> (if configured)</li>
-        </ul>
-      </div>
-
-      {/* api.get_endpoints */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.get_endpoints(app_name)</h3>
-        <p className="text-sm text-muted-foreground">
-          Discovers endpoint URLs dynamically via <code className="text-xs bg-muted px-1 rounded">SHOW ENDPOINTS IN SERVICE</code>.
-          For Gallery Compatible apps, this returns the live endpoint URL.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="pr-4 py-2">Parameter</th>
-                <th className="pr-4 py-2">Type</th>
-                <th className="py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr>
-                <td className="pr-4 py-2 font-mono text-xs">app_name</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="py-2">Name of the app</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.get_endpoints('MY_APP');`}</CodeBlock>
-      </div>
-
-      {/* api.heartbeat */}
-      <div className="border rounded-lg p-4 space-y-3">
-        <h3 className="font-semibold font-mono text-primary">api.heartbeat(lease_id, user_name)</h3>
-        <p className="text-sm text-muted-foreground">
-          Records a heartbeat for session tracking. Used by external systems to track active usage.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="pr-4 py-2">Parameter</th>
-                <th className="pr-4 py-2">Type</th>
-                <th className="pr-4 py-2">Default</th>
-                <th className="py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="text-muted-foreground">
-              <tr className="border-b">
-                <td className="pr-4 py-2 font-mono text-xs">lease_id</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="pr-4 py-2">—</td>
-                <td className="py-2">UUID of the active lease</td>
-              </tr>
-              <tr>
-                <td className="pr-4 py-2 font-mono text-xs">user_name</td>
-                <td className="pr-4 py-2">VARCHAR</td>
-                <td className="pr-4 py-2">NULL</td>
-                <td className="py-2">User identifier</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.heartbeat('abc12345-...', 'john.doe@example.com');`}</CodeBlock>
-      </div>
-
-      {/* Error Codes */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Error Codes</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border rounded-lg overflow-hidden">
-            <thead className="bg-muted">
-              <tr className="text-left">
-                <th className="px-4 py-2">Code</th>
-                <th className="px-4 py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              <tr>
-                <td className="px-4 py-2 font-mono text-xs">APP_NOT_FOUND</td>
-                <td className="px-4 py-2 text-muted-foreground">App is not registered as managed</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 font-mono text-xs">LEASE_NOT_FOUND</td>
-                <td className="px-4 py-2 text-muted-foreground">Lease ID does not exist</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 font-mono text-xs">LEASE_ALREADY_EXISTS</td>
-                <td className="px-4 py-2 text-muted-foreground">Active lease exists — use extend() instead</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 font-mono text-xs">NO_COMPUTE_POOL</td>
-                <td className="px-4 py-2 text-muted-foreground">App has no Compute Pool configured</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 font-mono text-xs">PERMISSION_DENIED</td>
-                <td className="px-4 py-2 text-muted-foreground">Missing GRANT permissions</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 font-mono text-xs">NO_START_NEEDED</td>
-                <td className="px-4 py-2 text-muted-foreground">App type is streamlit_wh (always available)</td>
-              </tr>
-            </tbody>
-          </table>
+        <h3 className="text-lg font-semibold">Cost Estimate</h3>
+        <p className="text-sm text-muted-foreground mb-3">
+          The Watchdog runs as a <strong>Snowflake Managed Task</strong> (serverless):
+        </p>
+        <div className="border rounded-lg p-4 bg-muted/50">
+          <ul className="text-sm space-y-1">
+            <li><strong>Frequency:</strong> Every 5 minutes (8,640 executions/month)</li>
+            <li><strong>Duration:</strong> Typically 1-3 seconds per execution</li>
+            <li><strong>Warehouse Size:</strong> XSMALL (serverless managed)</li>
+          </ul>
+          <p className="text-sm mt-3">
+            <strong>Estimated monthly cost:</strong> $10-30 USD depending on execution time and number of managed apps.
+          </p>
         </div>
+        <p className="text-sm text-muted-foreground mt-3">
+          <strong>Trade-off:</strong> With 5-minute intervals, expired leases may run up to 5 extra minutes
+          before being stopped. This is more cost-effective than 1-minute intervals for most use cases.
+        </p>
       </div>
     </div>
   );
 }
 
-function SectionGalleryCompatible() {
+// =============================================================================
+// For Developers Tab
+// =============================================================================
+function TabDevelopers() {
   return (
     <div className="space-y-6">
+      {/* Gallery Compatible Apps */}
       <div>
         <h2 className="text-2xl font-bold mb-4">Gallery Compatible Apps</h2>
         <p className="text-muted-foreground mb-4">
@@ -623,7 +315,7 @@ function SectionGalleryCompatible() {
       </div>
 
       <div className="border rounded-lg p-4 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
-        <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">For App Developers</h3>
+        <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">For Native App Developers</h3>
         <p className="text-sm text-amber-700 dark:text-amber-300">
           This section is for developers who want their Native App to be fully compatible with
           Blue App Gallery&apos;s lifecycle management.
@@ -683,79 +375,276 @@ GRANT USAGE ON PROCEDURE app_setup.resume_service()
 
 GRANT APPLICATION ROLE <YOUR_APP>.APP_ADMIN
     TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
-        <p className="text-sm text-muted-foreground">
-          This GRANT is included in the auto-generated statements when you add the app in the Operator UI.
-        </p>
       </div>
-    </div>
-  );
-}
 
-function SectionWatchdog() {
-  return (
-    <div className="space-y-6">
+      <Divider />
+
+      {/* API Reference */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">Watchdog Task</h2>
+        <h2 className="text-2xl font-bold mb-4">API Reference</h2>
         <p className="text-muted-foreground mb-4">
-          The Watchdog is a background task that automatically manages resource lifecycle.
+          Blue App Gallery exposes a public API via the <code className="text-xs bg-muted px-1 rounded">api</code> schema.
+          These procedures can be called by any user/role granted the <code className="text-xs bg-muted px-1 rounded">operator_api</code> application role.
         </p>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">What It Does</h3>
-        <ul className="text-sm text-muted-foreground space-y-2">
-          <li>
-            <strong>Lease Expiration:</strong> Every 5 minutes, checks for expired leases and suspends
-            the associated Compute Pools (and Postgres Instances if configured).
-          </li>
-          <li>
-            <strong>Leaseless Detection:</strong> For <code className="text-xs bg-muted px-1 rounded">streamlit_cp</code> apps,
-            detects when a Compute Pool is running without an active lease and auto-stops it after a 1-hour grace period.
-          </li>
-        </ul>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Enabling the Watchdog</h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          <strong>Step 1:</strong> Grant the required privilege:
-        </p>
-        <CodeBlock>{`USE ROLE ACCOUNTADMIN;
-GRANT EXECUTE MANAGED TASK ON ACCOUNT TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
-        <p className="text-sm text-muted-foreground">
-          <strong>Step 2:</strong> Go to the <strong>Operator</strong> page and click <strong>Enable Watchdog</strong>.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Cost Estimate</h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          The Watchdog runs as a <strong>Snowflake Managed Task</strong> (serverless):
-        </p>
-        <div className="border rounded-lg p-4 bg-muted/50">
-          <ul className="text-sm space-y-1">
-            <li><strong>Frequency:</strong> Every 5 minutes (8,640 executions/month)</li>
-            <li><strong>Duration:</strong> Typically 1-3 seconds per execution</li>
-            <li><strong>Warehouse Size:</strong> XSMALL (serverless managed)</li>
-          </ul>
-          <p className="text-sm mt-3">
-            <strong>Estimated monthly cost:</strong> $10-30 USD depending on execution time and number of managed apps.
+        <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+          <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">For Third-Party Integrations</h4>
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            Use this API to build custom dashboards, automation scripts, or integrate with your existing tools.
           </p>
         </div>
-        <p className="text-sm text-muted-foreground mt-3">
-          <strong>Trade-off:</strong> With 5-minute intervals, expired leases may run up to 5 extra minutes
-          before being stopped. This is more cost-effective than 1-minute intervals for most use cases.
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Access Setup</h3>
+        <p className="text-sm text-muted-foreground mb-3">
+          Create a dedicated role and user for API access:
         </p>
+        <CodeBlock>{`USE ROLE ACCOUNTADMIN;
+
+-- Create API role
+CREATE ROLE IF NOT EXISTS MY_GALLERY_API_ROLE;
+
+-- Grant operator_api application role
+GRANT APPLICATION ROLE BLUE_APP_GALLERY.operator_api
+    TO ROLE MY_GALLERY_API_ROLE;
+
+-- Grant warehouse for SQL execution
+GRANT USAGE ON WAREHOUSE COMPUTE_WH
+    TO ROLE MY_GALLERY_API_ROLE;`}</CodeBlock>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Response Format</h3>
+        <p className="text-sm text-muted-foreground mb-3">
+          All API procedures return a VARIANT with a consistent structure:
+        </p>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Success Response</p>
+            <CodeBlock>{`{
+  "api_version": "1.0",
+  "status": "OK",
+  "data": { ... }
+}`}</CodeBlock>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Error Response</p>
+            <CodeBlock>{`{
+  "api_version": "1.0",
+  "status": "ERROR",
+  "error": {
+    "code": "LEASE_NOT_FOUND",
+    "message": "..."
+  }
+}`}</CodeBlock>
+          </div>
+        </div>
+      </div>
+
+      {/* API Procedures */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Procedures</h3>
+      </div>
+
+      {/* api.get_version */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.get_version()</h4>
+        <p className="text-sm text-muted-foreground">
+          Returns the Operator version and API compatibility information.
+        </p>
+        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.get_version();`}</CodeBlock>
+        <p className="text-xs text-muted-foreground">Returns: <code>operator_version</code>, <code>api_version</code>, <code>min_compatible_api</code></p>
+      </div>
+
+      {/* api.launch */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.launch(app_name, duration_minutes, user_name)</h4>
+        <p className="text-sm text-muted-foreground">
+          Starts an app by resuming its Compute Pool and (for Gallery Compatible apps) calling resume_service().
+          Creates a lease that automatically expires after the specified duration.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left border-b">
+                <th className="pr-4 py-2">Parameter</th>
+                <th className="pr-4 py-2">Type</th>
+                <th className="pr-4 py-2">Default</th>
+                <th className="py-2">Description</th>
+              </tr>
+            </thead>
+            <tbody className="text-muted-foreground">
+              <tr className="border-b">
+                <td className="pr-4 py-2 font-mono text-xs">app_name</td>
+                <td className="pr-4 py-2">VARCHAR</td>
+                <td className="pr-4 py-2">—</td>
+                <td className="py-2">Name of the managed app</td>
+              </tr>
+              <tr className="border-b">
+                <td className="pr-4 py-2 font-mono text-xs">duration_minutes</td>
+                <td className="pr-4 py-2">INTEGER</td>
+                <td className="pr-4 py-2">60</td>
+                <td className="py-2">Lease duration in minutes</td>
+              </tr>
+              <tr>
+                <td className="pr-4 py-2 font-mono text-xs">user_name</td>
+                <td className="pr-4 py-2">VARCHAR</td>
+                <td className="pr-4 py-2">NULL</td>
+                <td className="py-2">Identifier for audit logging</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.launch('MY_APP', 60, 'user@example.com');`}</CodeBlock>
+        <p className="text-xs text-muted-foreground">Returns: <code>lease_id</code>, <code>lease_expires_at</code>, <code>endpoint_url</code></p>
+      </div>
+
+      {/* api.extend */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.extend(lease_id, duration_minutes, user_name)</h4>
+        <p className="text-sm text-muted-foreground">
+          Extends an existing lease by the specified duration. Also ensures resources are resumed.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left border-b">
+                <th className="pr-4 py-2">Parameter</th>
+                <th className="pr-4 py-2">Type</th>
+                <th className="pr-4 py-2">Default</th>
+                <th className="py-2">Description</th>
+              </tr>
+            </thead>
+            <tbody className="text-muted-foreground">
+              <tr className="border-b">
+                <td className="pr-4 py-2 font-mono text-xs">lease_id</td>
+                <td className="pr-4 py-2">VARCHAR</td>
+                <td className="pr-4 py-2">—</td>
+                <td className="py-2">UUID of the lease</td>
+              </tr>
+              <tr className="border-b">
+                <td className="pr-4 py-2 font-mono text-xs">duration_minutes</td>
+                <td className="pr-4 py-2">INTEGER</td>
+                <td className="pr-4 py-2">60</td>
+                <td className="py-2">Additional minutes</td>
+              </tr>
+              <tr>
+                <td className="pr-4 py-2 font-mono text-xs">user_name</td>
+                <td className="pr-4 py-2">VARCHAR</td>
+                <td className="pr-4 py-2">NULL</td>
+                <td className="py-2">Identifier for audit</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.extend('abc12345-...', 30, 'user@example.com');`}</CodeBlock>
+      </div>
+
+      {/* api.stop */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.stop(lease_id)</h4>
+        <p className="text-sm text-muted-foreground">
+          Stops a lease immediately. Suspends the Compute Pool if no other active leases exist.
+        </p>
+        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.stop('abc12345-...');`}</CodeBlock>
+      </div>
+
+      {/* api.get_status */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.get_status(app_name)</h4>
+        <p className="text-sm text-muted-foreground">
+          Returns the status of a specific app or all apps with active leases. Pass NULL for all apps.
+        </p>
+        <CodeBlock>{`-- All apps with active leases
+CALL BLUE_APP_GALLERY.api.get_status();
+
+-- Specific app
+CALL BLUE_APP_GALLERY.api.get_status('MY_APP');`}</CodeBlock>
+      </div>
+
+      {/* api.list_apps */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.list_apps()</h4>
+        <p className="text-sm text-muted-foreground">
+          Returns all managed apps with catalog information.
+        </p>
+        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.list_apps();`}</CodeBlock>
+        <p className="text-xs text-muted-foreground">Returns: <code>app_name</code>, <code>app_type</code>, <code>compute_pool</code>, <code>endpoint_url</code>, <code>gallery_compatible</code>, etc.</p>
+      </div>
+
+      {/* api.get_endpoints */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.get_endpoints(app_name)</h4>
+        <p className="text-sm text-muted-foreground">
+          Discovers endpoint URLs dynamically via <code className="text-xs bg-muted px-1 rounded">SHOW ENDPOINTS IN SERVICE</code>.
+        </p>
+        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.get_endpoints('MY_APP');`}</CodeBlock>
+      </div>
+
+      {/* api.heartbeat */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h4 className="font-semibold font-mono text-primary">api.heartbeat(lease_id, user_name)</h4>
+        <p className="text-sm text-muted-foreground">
+          Records a heartbeat for session tracking.
+        </p>
+        <CodeBlock>{`CALL BLUE_APP_GALLERY.api.heartbeat('abc12345-...', 'user@example.com');`}</CodeBlock>
+      </div>
+
+      {/* Error Codes */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Error Codes</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border rounded-lg overflow-hidden">
+            <thead className="bg-muted">
+              <tr className="text-left">
+                <th className="px-4 py-2">Code</th>
+                <th className="px-4 py-2">Description</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              <tr>
+                <td className="px-4 py-2 font-mono text-xs">APP_NOT_FOUND</td>
+                <td className="px-4 py-2 text-muted-foreground">App is not registered as managed</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-mono text-xs">LEASE_NOT_FOUND</td>
+                <td className="px-4 py-2 text-muted-foreground">Lease ID does not exist</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-mono text-xs">LEASE_ALREADY_EXISTS</td>
+                <td className="px-4 py-2 text-muted-foreground">Active lease exists — use extend()</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-mono text-xs">NO_COMPUTE_POOL</td>
+                <td className="px-4 py-2 text-muted-foreground">App has no Compute Pool</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-mono text-xs">PERMISSION_DENIED</td>
+                <td className="px-4 py-2 text-muted-foreground">Missing GRANT permissions</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 font-mono text-xs">NO_START_NEEDED</td>
+                <td className="px-4 py-2 text-muted-foreground">App is streamlit_wh (always on)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 }
 
-function SectionTroubleshooting() {
+// =============================================================================
+// Troubleshooting Tab
+// =============================================================================
+function TabTroubleshooting() {
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-4">Troubleshooting</h2>
+        <p className="text-muted-foreground mb-6">
+          Common issues and their solutions.
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -778,12 +667,12 @@ function SectionTroubleshooting() {
 
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Watchdog not running</h3>
-        <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-          <li>Grant the required privilege:</li>
-        </ul>
+        <p className="text-sm text-muted-foreground mb-2">
+          Grant the required privilege and enable:
+        </p>
         <CodeBlock>{`USE ROLE ACCOUNTADMIN;
 GRANT EXECUTE MANAGED TASK ON ACCOUNT TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground mt-2">
           Then go to the Operator page and click <strong>Enable Watchdog</strong>.
         </p>
       </div>
@@ -813,6 +702,31 @@ GRANT EXECUTE MANAGED TASK ON ACCOUNT TO APPLICATION BLUE_APP_GALLERY;`}</CodeBl
         </p>
       </div>
 
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Discovery shows no apps</h3>
+        <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+          <li>Ensure you have run the Setup Notebook to create the Discovery procedure</li>
+          <li>Check that the GRANT statements were applied to the Operator</li>
+          <li>Verify your Native Apps and Streamlit apps exist in the account</li>
+        </ul>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">After Operator Upgrade</h3>
+        <p className="text-sm text-muted-foreground">
+          When the Operator is upgraded, application role grants may be revoked. Re-run:
+        </p>
+        <CodeBlock>{`USE ROLE ACCOUNTADMIN;
+
+-- Re-grant API access
+GRANT APPLICATION ROLE BLUE_APP_GALLERY.operator_api
+    TO ROLE <YOUR_API_ROLE>;
+
+-- Re-grant for Gallery Compatible apps
+GRANT APPLICATION ROLE <YOUR_APP>.APP_ADMIN
+    TO APPLICATION BLUE_APP_GALLERY;`}</CodeBlock>
+      </div>
+
       <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
         <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Getting Support</h3>
         <ul className="text-sm text-blue-700 dark:text-blue-300 list-disc list-inside space-y-1">
@@ -825,18 +739,17 @@ GRANT EXECUTE MANAGED TASK ON ACCOUNT TO APPLICATION BLUE_APP_GALLERY;`}</CodeBl
   );
 }
 
+// =============================================================================
+// Main Page
+// =============================================================================
 export default function NativeAppGuidePage() {
-  const [activeSection, setActiveSection] = useState<Section>('overview');
+  const [activeTab, setActiveTab] = useState<Tab>('installation');
 
-  const renderSection = () => {
-    switch (activeSection) {
-      case 'overview': return <SectionOverview />;
-      case 'installation': return <SectionInstallation />;
-      case 'managing-apps': return <SectionManagingApps />;
-      case 'api-reference': return <SectionApiReference />;
-      case 'gallery-compatible': return <SectionGalleryCompatible />;
-      case 'watchdog': return <SectionWatchdog />;
-      case 'troubleshooting': return <SectionTroubleshooting />;
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'installation': return <TabInstallation />;
+      case 'developers': return <TabDevelopers />;
+      case 'troubleshooting': return <TabTroubleshooting />;
     }
   };
 
@@ -847,33 +760,27 @@ export default function NativeAppGuidePage() {
         Complete documentation for the Snowflake Native App Operator.
       </p>
 
-      {/* Section navigation */}
-      <div className="flex flex-wrap gap-1 mb-8 border rounded-lg p-1 bg-muted/50">
-        {sections.map((section) => (
+      {/* Tab navigation */}
+      <div className="flex gap-2 mb-8 border-b">
+        {tabs.map((tab) => (
           <button
-            key={section.id}
-            onClick={() => setActiveSection(section.id)}
-            className={`flex items-center gap-1.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeSection === section.id
-                ? 'bg-background shadow-sm text-foreground'
-                : 'text-muted-foreground hover:text-foreground'
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeTab === tab.id
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
             }`}
           >
-            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${
-              activeSection === section.id
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted-foreground/20 text-muted-foreground'
-            }`}>
-              {section.icon}
-            </span>
-            <span className="hidden md:inline">{section.label}</span>
+            <span>{tab.icon}</span>
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
 
-      {/* Section content */}
+      {/* Tab content */}
       <div className="pb-12">
-        {renderSection()}
+        {renderTab()}
       </div>
     </div>
   );
