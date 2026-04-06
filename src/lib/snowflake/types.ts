@@ -204,6 +204,24 @@ export function isEndpointReady(data: EndpointsData): data is EndpointsDataReady
   return data.endpoint_status === 'READY';
 }
 
+// -- api.verify_permissions() --
+
+export interface PermissionIssue {
+  app_name: string;
+  resources: Array<{
+    name: string;
+    type: string;
+    status: string;
+  }>;
+  message: string;
+}
+
+export interface VerifyPermissionsData {
+  apps_checked: number;
+  apps_with_issues: number;
+  issues: PermissionIssue[];
+}
+
 // -- Snowflake SQL API raw response --
 
 export interface SqlApiResponse {

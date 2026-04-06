@@ -9,6 +9,7 @@ import type {
   HeartbeatData,
   ListAppsData,
   EndpointsData,
+  VerifyPermissionsData,
   SqlApiResponse,
 } from './types';
 
@@ -228,6 +229,11 @@ export class SnowflakeSqlApiClient {
   /** api.get_endpoints(app_name) — Get app endpoints */
   async getEndpoints(appName: string): Promise<OperatorResponse<EndpointsData>> {
     return this.callApi<EndpointsData>('get_endpoints', [appName]);
+  }
+
+  /** api.verify_permissions() — Check permission status for all managed apps */
+  async verifyPermissions(): Promise<OperatorResponse<VerifyPermissionsData>> {
+    return this.callApi<VerifyPermissionsData>('verify_permissions');
   }
 
   // ============================================================

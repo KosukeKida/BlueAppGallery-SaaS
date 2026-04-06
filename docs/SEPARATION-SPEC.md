@@ -1,6 +1,6 @@
 # Gallery / Operator 分離仕様書
 
-> v1.0 Draft — 2026-03-12
+> v1.2 — 2026-04-06
 
 ---
 
@@ -25,6 +25,51 @@ Gallery（SaaS）と Operator（Native App）を責務分離し、**独立した
                                                                      (SaaSなしで単体利用可)
 ```
 
+### 1.1 責務分界点
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Operator（Native App）                                                    │
+│                                                                            │
+│  ■ 単体で機能完結                                                          │
+│    - Streamlit Dashboard でアプリの発見・登録・起動・停止が可能            │
+│    - SaaS がなくても全機能を利用できる                                     │
+│    - Marketplace で独立した製品として公開                                  │
+│                                                                            │
+│  ■ 拡張ポイントとして api スキーマを公開                                   │
+│    - api.* プロシージャは「外部連携のための拡張インターフェース」          │
+│    - 誰が呼ぶか（SaaS、スクリプト、他ツール）は Operator の関知外          │
+│    - Operator は SaaS の存在を知らない / 依存しない                        │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+                                    ↑
+                          ユーザーが許可した場合のみ
+                          （接続設定 + APPLICATION ROLE 付与）
+                                    ↓
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Gallery（SaaS）                                                           │
+│                                                                            │
+│  ■ Operator の api を「勝手に」使うだけ                                    │
+│    - ユーザーが SaaS の指示に従って接続用ユーザー/ロールを設定             │
+│    - SaaS はその認証情報で api.* を呼び出す                                │
+│    - Operator 側の変更なしに SaaS が独自に機能拡張可能                     │
+│                                                                            │
+│  ■ SaaS 固有の付加価値                                                     │
+│    - チーム/メンバー管理（Operator にはない）                              │
+│    - スケジュール起動停止（Operator にはない）                             │
+│    - 使用状況の可視化・分析（Operator にはない）                           │
+│    - 複数 Snowflake アカウントの統合管理（Operator にはない）              │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**設計原則:**
+- Operator は SaaS を前提としない（Marketplace 審査で Connected App 扱いを回避）
+- SaaS は Operator の公開 API を利用するサードパーティという位置づけ
+- ユーザーの明示的な許可（GRANT）がなければ SaaS は Operator にアクセスできない
+- Dashboard も SaaS も同じ `api.launch()` / `api.stop()` を使用（リース管理の統一）
+- Operator は呼び出し元（Dashboard か SaaS か）を区別しない（user_name で識別可能だが動作は同一）
+
 ---
 
 ## 2. Operator（Native App）
@@ -33,16 +78,16 @@ Gallery（SaaS）と Operator（Native App）を責務分離し、**独立した
 
 | スキーマ | 用途 | アクセス |
 |----------|------|----------|
-| `api` | Gallery 向け公開 API | `operator_api` ロール |
+| `api` | 公開 API（Dashboard / 外部連携共通） | `operator_api`, `operator_admin` ロール |
 | `config` | Streamlit UI 向け管理操作 | `operator_admin` ロール |
 | `core` | 内部実装（テーブル・内部プロシージャ） | プロシージャ経由のみ |
 
 ### 2.2 APPLICATION ROLE
 
 ```sql
-CREATE APPLICATION ROLE operator_api;   -- Gallery SaaS 接続ユーザー用
-CREATE APPLICATION ROLE operator_admin;  -- Streamlit UI / 管理者用
-CREATE APPLICATION ROLE operator_user;   -- 読み取り専用（利用組織の判断で付与）
+CREATE APPLICATION ROLE operator_api;    -- 外部連携用（api.* のみ）
+CREATE APPLICATION ROLE operator_admin;  -- Streamlit UI / 管理者用（api.* + config.*）
+CREATE APPLICATION ROLE operator_user;   -- 読み取り専用（将来用）
 ```
 
 ### 2.3 公開 API プロシージャ（`api` スキーマ）
@@ -77,6 +122,7 @@ CREATE APPLICATION ROLE operator_user;   -- 読み取り専用（利用組織の
 | `api.list_apps()` | なし | 管理対象アプリ一覧（endpoint_url, compute_pool 等含む） |
 | `api.get_endpoints(app_name)` | VARCHAR | SHOW ENDPOINTS 経由の URL 発見 |
 | `api.get_version()` | なし | Operator バージョン + API バージョン + 互換性情報 |
+| `api.verify_permissions()` | なし | 全 Managed アプリの権限状態を一括チェック（オンデマンド診断用） |
 
 #### 設計原則
 
@@ -84,7 +130,89 @@ CREATE APPLICATION ROLE operator_user;   -- 読み取り専用（利用組織の
 - **`extend` は lease_expires_at を UPDATE してからリソース RESUME** — Watchdog とのレースコンディション解消
 - **全エラーは構造化レスポンス** — 例外を飲み込まない
 
-### 2.4 Streamlit Dashboard 拡張
+#### `api.verify_permissions()` の詳細
+
+SaaS からのオンデマンド診断用。通常のカタログ同期（`api.list_apps()`）では権限チェックを行わず、
+管理者が明示的に「Verify Permissions」を実行した時のみ権限状態を返す。
+
+**返却例（問題あり）:**
+```json
+{
+  "api_version": "1.0",
+  "status": "OK",
+  "data": {
+    "apps_checked": 5,
+    "apps_with_issues": 2,
+    "issues": [
+      {
+        "app_name": "LEARNING_STUDIO",
+        "resources": [
+          { "name": "CP_LEARNING", "type": "COMPUTE_POOL", "status": "PENDING" }
+        ],
+        "message": "Run Re-sync in Operator Dashboard, then execute GRANT statements"
+      }
+    ]
+  }
+}
+```
+
+**返却例（問題なし）:**
+```json
+{
+  "api_version": "1.0",
+  "status": "OK",
+  "data": { "apps_checked": 5, "apps_with_issues": 0, "issues": [] }
+}
+```
+
+### 2.4 管理プロシージャ（`config` スキーマ）
+
+Dashboard 向けの管理操作。SaaS からは呼び出さない。
+
+| プロシージャ | 引数 | 説明 |
+|---|---|---|
+| `config.manage_app(app_name, managed)` | VARCHAR, BOOLEAN | アプリを Managed に登録/解除。GRANT SQL を返却 |
+| `config.resync_app(app_name)` | VARCHAR | 再デプロイ後のリソース再同期。変更検出 + GRANT SQL 返却 |
+| `config.validate_managed_app(app_name)` | VARCHAR | 指定アプリの全リソース権限を検証 |
+| `config.discover_apps()` | なし | DISCOVER_APPS() 外部プロシージャ経由でアプリ発見 |
+| `config.list_managed_apps()` | なし | Managed アプリ一覧（Dashboard 表示用） |
+
+#### `config.resync_app()` の詳細
+
+再デプロイでコンピュートプールが変更された場合など、`managed_resources` と `app_catalog` の不整合を解消する。
+
+**動作:**
+1. 現在の `managed_resources` を記録
+2. `managed_resources` をクリア
+3. `app_catalog` の最新 infra から再登録
+4. 差分を検出（ADDED / REPLACED / REMOVED）
+5. 必要な GRANT SQL を返却
+
+**返却例（変更あり）:**
+```json
+{
+  "status": "UPDATED",
+  "app_name": "LEARNING_STUDIO",
+  "changes": [
+    { "type": "REPLACED", "old_resource": "CP_OLD", "new_resource": "CP_NEW", "resource_type": "COMPUTE_POOL" }
+  ],
+  "grants_needed": ["GRANT OPERATE ON COMPUTE POOL CP_NEW TO APPLICATION BLUE_APP_GALLERY;"],
+  "message": "Resource configuration updated. Run the GRANT statements if needed."
+}
+```
+
+**返却例（変更なし）:**
+```json
+{
+  "status": "NO_CHANGE",
+  "app_name": "LEARNING_STUDIO",
+  "changes": [],
+  "grants_needed": [],
+  "message": "Resource configuration is up to date. No changes detected."
+}
+```
+
+### 2.5 Streamlit Dashboard 拡張
 
 現在の Setup UI を「Operator Dashboard」として拡張。
 `st.set_page_config(layout="wide")` で横幅いっぱいに使用する。
@@ -104,34 +232,35 @@ CREATE APPLICATION ROLE operator_user;   -- 読み取り専用（利用組織の
 
 SaaS Gallery と**同等のカード型 UI** を Streamlit で実装する。
 ただし以下は Operator では**提供しない**（SaaS 専用機能）：
-- リース管理（時間指定の自動停止）
 - スケジュール起動停止
 - チーム/メンバー管理
+- 使用状況分析
 
 | 要素 | 動作 |
 |------|------|
-| カード表示 | アプリ名、カテゴリ、アイコン、CP 状態（Running / Stopped） |
-| Start ボタン | `config.start_app(app_name)` → CP RESUME + SERVICE 起動 |
-| Stop ボタン | `config.stop_app(app_name)` → CP SUSPEND |
+| カード表示 | アプリ名、カテゴリ、アイコン、リース状態（Running / Stopped）、残り時間 |
+| Start ボタン | `api.launch(app_name, default_lease_minutes, 'DASHBOARD')` → リース作成 + CP RESUME + SERVICE 起動 |
+| Stop ボタン | `api.stop(lease_id)` → リース停止 + CP SUSPEND |
 | Open ボタン（起動中） | `endpoint_url` に直リンク |
-| カード押下（起動中） | アプリ詳細（リソース状態、エンドポイント URL 等） |
+| カード押下（起動中） | アプリ詳細（リース残り時間、Extend ボタン、リソース状態） |
 | `streamlit_wh` カード | Open ボタンのみ（常時到達可能、Start/Stop なし） |
 
 - カードグリッドは `st.columns` + `st.container` で SaaS 相当のレイアウトを再現
 - 検索バー + カテゴリフィルタも SaaS 同様に提供
+- **Dashboard も SaaS も同じ `api.launch()` / `api.stop()` を使用**（リース管理の統一）
 
 ##### 「起動中」の判定基準（Operator Dashboard）
 
-**管理者向け** の表示であるため、**コンピュートリソースが起動しているか** で判定する。
-エンドポイントに実際に到達できるかは考慮しない。
+**リースの有無** で判定する（SaaS と統一）。
 
 | app_type | 判定方法 |
 |---|---|
-| `native_app` / `streamlit_cp` | `DESCRIBE COMPUTE POOL <pool>` の state が `ACTIVE`, `IDLE`, `STARTING`, `RESIZING` のいずれか |
-| `streamlit_wh` | 常時 Running（サーバーレス） |
+| `native_app` / `streamlit_cp` | `core.lease_status` にアクティブリースが存在するか |
+| `streamlit_wh` | 常時 Running（サーバーレス、リースなし） |
 
-- リースは作成しない（Operator Dashboard は手動 Start/Stop、時間制限なし）
-- SaaS 経由で起動されたリースが `core.active_leases` にある場合も Running として表示
+- Dashboard からの起動もリースを作成（user_name = 'DASHBOARD'）
+- SaaS 経由のリースと Dashboard 経由のリースは共存可能（同じアプリに複数リース）
+- 全リースが期限切れになるまで CP は SUSPEND されない（共有リソースロジック）
 - Compute Pool が ACTIVE でも SERVICE がクラッシュしている可能性はあるが、管理者は Open 時やログで確認できるため許容
 
 #### Operator ビュー（サイドバー: Operator）
@@ -141,6 +270,25 @@ SaaS Gallery と**同等のカード型 UI** を Streamlit で実装する。
 - リソース管理: CP / SERVICE / DB（既存 Resources）
 - `app_type` の設定（`native_app` / `streamlit_cp` / `streamlit_wh`）
 - Gallery SaaS 連携設定
+
+##### Managed Apps の Re-sync 機能
+
+再デプロイ後のリソース変更（コンピュートプール差し替え等）に対応���るため、Managed Apps 一覧に Re-sync 機能を提供。
+
+| ボタン | 場所 | 動作 |
+|--------|------|------|
+| **Refresh** | ヘッダー行 | 一覧キャッシュのクリアのみ（軽量） |
+| **Validate All** | ヘッダー行 | 全アプリの権限状態を検証 |
+| **Re-sync All** | ヘッダー行 | 全アプリの `config.resync_app()` を順次実行（プログレスバー表示） |
+| **Re-sync** | 各アプリの expander 内 | 個別アプリの `config.resync_app()` を実行 |
+
+**Re-sync の典型的なユースケース:**
+1. アプリを再デプロイして Compute Pool が変わった
+2. SaaS から起動しようとしたがエラー
+3. 管理者が Operator Dashboard で該当アプリの「Re-sync」を実行
+4. 変更が検出され、GRANT SQL が表示される
+5. GRANT SQL を Snowsight で実行
+6. 「Validate」で権限を確認 → 起動可能に
 
 #### Audit Log（サイドバー: Audit Log）
 
@@ -169,7 +317,12 @@ SaaS Gallery と**同等のカード型 UI** を Streamlit で実装する。
 
 ### 2.7 アプリタイプと制御方式
 
-`app_catalog` に `app_type` を追加：
+`app_catalog` に `app_type` と `default_lease_minutes` を追加：
+
+| カラム | 型 | デフォルト | 説明 |
+|---|---|---|---|
+| `app_type` | VARCHAR | `'native_app'` | アプリの種類（下記参照） |
+| `default_lease_minutes` | INT | `60` | Dashboard 起動時のデフォルトリース時間 |
 
 | app_type | 説明 | CP 制御 | Postgres 制御 | リース対象 | エンドポイント |
 |---|---|---|---|---|---|
@@ -468,6 +621,55 @@ async getOperatorVersion() {
 | 同期 | Gallery → Operator (start/stop/extend) | Operator → Gallery (10秒ポーリング) |
 | 不整合時 | Operator が勝つ | Gallery は次回 refresh で追従 |
 
+### 3.7 Settings > Catalog の権限診断
+
+管理者向けのオンデマンド診断機能。通常の Sync では権限チェックを行わず、
+問題が発生した時に管理者が明示的に実行する。
+
+#### UI
+
+Settings > Catalog ページに「Verify Permissions」ボタンを追加。
+
+| ボタン | 動作 |
+|--------|------|
+| **Sync** | `api.list_apps()` でカタログ同期（既存、権限チェックなし） |
+| **Verify Permissions** | `api.verify_permissions()` で全アプリの権限状態をチェック |
+
+#### Verify Permissions の表示
+
+**問題なしの場合:**
+```
+✅ All 5 apps have valid permissions.
+```
+
+**問題ありの場合:**
+```
+⚠️ 2 apps have permission issues:
+
+┌─────────────────────────────────────────────────────────┐
+│ LEARNING_STUDIO                                         │
+│ ��� COMPUTE_POOL: CP_LEARNING — PENDING                   │
+│                                                         │
+│ → Run Re-sync in Operator Dashboard, then execute GRANT │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### 典型的なトラブルシューティングフロー
+
+1. ユーザーが Gallery からアプリを起動 → 失敗（到達不能）
+2. 管理者が Settings > Catalog > **Verify Permissions** を実行
+3. 問題のあるアプリが表示される
+4. 管理者が Operator Dashboard で該当アプリの **Re-sync** を実行
+5. GRANT SQL を Snowsight で実行
+6. Operator Dashboard で **Validate** を実行 → 権限 OK
+7. ユーザーが再度起動 → 成功
+
+#### 設計原則
+
+- **通常フローに影響しない**: Sync や起動操作では権限チェックを行わない（パフ��ーマンス優先）
+- **管理者向け**: 一般ユーザーには表示しない（Settings ページは admin/owner のみ）
+- **オンデマンド**: 問題発生時に明示的に実行
+
 ---
 
 ## 4. API Contract まとめ
@@ -482,6 +684,7 @@ async getOperatorVersion() {
 | カード状態更新 | `api.get_status()` | 60秒ポーリング |
 | エンドポイント発見 | `api.get_endpoints(app)` | Launch 後ポーリング |
 | カタログ同期 | `api.list_apps()` | Settings > Catalog > Sync |
+| 権限診断 | `api.verify_permissions()` | Settings > Catalog > Verify Permissions（オンデマンド） |
 | 接続テスト | `api.get_version()` | Settings > Connections > Test |
 | ハートビート | `api.heartbeat(lease_id, user)` | ブラウザ操作時 |
 | スケジュール実行 | `api.launch(app, duration, 'SCHEDULER')` | Supabase cron |
@@ -495,35 +698,38 @@ async getOperatorVersion() {
 
 ## 5. 開発フェーズ
 
-### Phase 1: API スキーマ追加 + Dashboard 拡張（Operator）
+> 詳細な進捗は CLAUDE.md の開発計画を参照
 
-- [ ] `api` スキーマ新設 + `operator_api` ロール
-- [ ] `api.launch()` / `api.extend()` / `api.stop()` 実装（内部で core.* を呼び出す）
-- [ ] `api.get_status()` / `api.list_apps()` / `api.get_endpoints()` / `api.get_version()` 実装
-- [ ] `api.extend()` のレースコンディション修正（UPDATE を先、RESUME を後）
-- [ ] Streamlit Dashboard に Operations タブ（Start/Stop ボタン）追加
-- [ ] Streamlit Dashboard に Help タブ（Deploy Guide）追加
-- [ ] `app_type` カラムを `core.app_catalog` に追加
+### Phase 1-4: 完了済み
 
-### Phase 2: Gallery 側移行
+- [x] `api` スキーマ新設 + APPLICATION ROLE
+- [x] `api.launch()` / `api.extend()` / `api.stop()` / `api.get_status()` / `api.list_apps()` / `api.get_endpoints()` / `api.get_version()` 実装
+- [x] Streamlit Dashboard（Gallery / Operator / Audit Log / Help）
+- [x] SaaS 側の `api` スキーマ移行
+- [x] リポジトリ分離完了（Coordinator / SaaS / Operator）
+- [x] Phase 4 REVOKE コミット済み（デプロイ待ち）
 
-- [ ] `sql-api-client.ts` を `api` スキーマ呼び出しに変更
-- [ ] `types.ts` を新レスポンス形式に更新
-- [ ] Supabase `app_catalog` に `app_type` カラム追加
-- [ ] Gallery UI に Streamlit 直リンク対応追加
-- [ ] 接続テストで `api.get_version()` 互換性チェック追加
+### Phase 5: Marketplace 再審査対応
 
-### Phase 3: リポジトリ分離
+- [x] `operator_api` にリネーム完了（中立的な名前）
+- [x] Listing 説明文から SaaS 連携の記述を削除
+- [x] Gallery Compatible の条件を説明文トップに明記
+- [x] Discovery を外部プロシージャ + References で実装（RCR はサンドボックス制限で断念）
+- [x] Setup Notebook で `DISCOVER_APPS()` プロシージャを作成
+- [x] `DISCOVER_APPS()` で `gallery_compatible` 自動検出（`resume_service` 存在確認）
+- [x] `config.manage_app()` で Gallery Compatible 用 GRANT（`resume_service` への USAGE）を生成
+- [x] Help ページを更新（SaaS Integration 削除、Setup Notebook に完全 SQL 追加）
+- [x] アプリ開発者: REGISTRY への GRANT 不要（Setup_UI 簡略化）
 
-- [ ] `native-app/` → 新リポジトリ `SnowflakeAppOperator`
-- [ ] `saas/` → 現リポジトリ `SnowflakeAppGallery` として維持
-- [ ] API Contract 仕様書を両リポジトリの docs/ に配置
-- [ ] CI/CD パイプラインを各リポジトリに設定
+### Phase 6: Dashboard リース統一
 
-### Phase 4: 後方互換削除（Operator v2.0）
-
-- [ ] `core.*` の直接呼び出しを `operator_api` ロールから REVOKE
-- [ ] `api` スキーマのみが公開 API
+- [ ] `core.app_catalog` に `default_lease_minutes` カラム追加（デフォルト: 60）
+- [ ] `config.start_app()` を廃止、Dashboard は `api.launch()` を使用
+- [ ] `config.stop_app()` を廃止、Dashboard は `api.stop()` を使用
+- [ ] Gallery ページでリース残り時間を表示
+- [ ] Operator ページに「Default lease duration」設定 UI 追加
+- [ ] `leaseless_tracker` を fallback 化（手動 ALTER 用）
+- [ ] 複数リース共存の動作確認（同じアプリに Dashboard + SaaS リース）
 
 ---
 

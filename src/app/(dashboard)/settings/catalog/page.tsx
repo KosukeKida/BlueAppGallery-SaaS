@@ -87,6 +87,16 @@ export default function CatalogSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<{
+    apps_checked: number;
+    apps_with_issues: number;
+    issues: Array<{
+      app_name: string;
+      resources: Array<{ name: string; type: string; status: string }>;
+      message: string;
+    }>;
+  } | null>(null);
 
   // Edit dialog state
   const [editApp, setEditApp] = useState<CatalogApp | null>(null);
@@ -140,6 +150,23 @@ export default function CatalogSettingsPage() {
       setSyncMessage(`Sync error: ${err instanceof Error ? err.message : String(err)}`);
     }
     setSyncing(false);
+  };
+
+  const handleVerifyPermissions = async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const res = await fetch('/api/catalog/verify-permissions', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.status === 'OK') {
+        setVerifyResult(data.data);
+      } else {
+        toast.error(data.error || 'Failed to verify permissions');
+      }
+    } catch (err) {
+      toast.error(`Verify error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    setVerifying(false);
   };
 
   const startEdit = (app: CatalogApp) => {
@@ -213,9 +240,14 @@ export default function CatalogSettingsPage() {
             Apps are registered in Snowflake Streamlit. Sync to update, or customize display here.
           </p>
         </div>
-        <Button variant="outline" onClick={handleSync} disabled={syncing}>
-          {syncing ? 'Syncing...' : 'Sync from Snowflake'}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleSync} disabled={syncing}>
+            {syncing ? 'Syncing...' : 'Sync from Snowflake'}
+          </Button>
+          <Button variant="outline" onClick={handleVerifyPermissions} disabled={verifying}>
+            {verifying ? 'Verifying...' : 'Verify Permissions'}
+          </Button>
+        </div>
       </div>
 
       {syncMessage && (
@@ -225,6 +257,45 @@ export default function CatalogSettingsPage() {
             : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
         }`}>
           {syncMessage}
+        </div>
+      )}
+
+      {verifyResult && (
+        <div className={`mb-4 text-sm px-4 py-3 rounded-md border ${
+          verifyResult.apps_with_issues > 0
+            ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+            : 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
+        }`}>
+          {verifyResult.apps_with_issues === 0 ? (
+            <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+              <span>✅</span>
+              <span>All {verifyResult.apps_checked} apps have valid permissions.</span>
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium mb-2">
+                <span>⚠️</span>
+                <span>{verifyResult.apps_with_issues} app(s) have permission issues:</span>
+              </div>
+              <div className="space-y-2 mt-2">
+                {verifyResult.issues.map((issue) => (
+                  <div key={issue.app_name} className="bg-white dark:bg-gray-800 rounded p-3 border border-amber-200 dark:border-amber-700">
+                    <div className="font-medium text-amber-800 dark:text-amber-300">{issue.app_name}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {issue.resources.map((r) => (
+                        <div key={r.name}>
+                          • {r.type}: {r.name} — <span className="text-amber-600">{r.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-xs mt-2 text-muted-foreground">
+                      → {issue.message}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
